@@ -1,0 +1,47 @@
+const Claim = require('../models/Claim.model');
+const Item = require('../models/Item.model');
+
+exports.createClaim = async (req, res, next) => {
+  try {
+    const { itemId, proofAnswer, note } = req.body;
+    if (!itemId || !proofAnswer) {
+      return res.status(400).json({ message: 'Item and proof answer are required' });
+    }
+
+    const item = await Item.findById(itemId);
+    if (!item) return res.status(404).json({ message: 'Item not found' });
+    if (item.createdBy.toString() === req.user._id.toString()) {
+      return res.status(400).json({ message: 'You cannot claim an item you reported' });
+    }
+    if (item.status !== 'active') {
+      return res.status(400).json({ message: 'This item is no longer available' });
+    }
+
+    const existing = await Claim.findOne({ item: itemId, claimant: req.user._id, status: 'pending' });
+    if (existing) {
+      return res.status(400).json({ message: 'You already have a pending claim for this item' });
+    }
+
+    const claim = await Claim.create({
+      item: itemId,
+      claimant: req.user._id,
+      proofAnswer,
+      note,
+    });
+
+    res.status(201).json({ claim });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.getMyClaims = async (req, res, next) => {
+  try {
+    const claims = await Claim.find({ claimant: req.user._id })
+      .populate('item', 'title category location image type status createdBy')
+      .sort({ createdAt: -1 });
+    res.status(200).json({ claims });
+  } catch (err) {
+    next(err);
+  }
+};

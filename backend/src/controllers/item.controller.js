@@ -1,0 +1,84 @@
+const Item = require('../models/Item.model');
+const { runMatchEngine } = require('../services/matchEngine.service');
+const { processImage } = require('../services/upload.service');
+
+exports.getItems = async (req, res, next) => {
+  try {
+    const { type, category, location, status, search } = req.query;
+    const filter = {};
+
+    if (type) filter.type = type;
+    if (category) filter.category = category;
+    if (location) filter.location = location;
+    if (status) filter.status = status;
+    if (!status && !type) filter.status = { $in: ['active', 'claimed'] };
+
+    if (search) {
+      filter.$or = [
+        { title: { $regex: search, $options: 'i' } },
+        { description: { $regex: search, $options: 'i' } },
+        { category: { $regex: search, $options: 'i' } },
+      ];
+    }
+
+    const items = await Item.find(filter)
+      .populate('createdBy', 'name email avatar')
+      .sort({ createdAt: -1 })
+      .limit(Math.min(Number(req.query.limit) || 60, 120));
+
+    res.status(200).json({ items, total: items.length });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.getItem = async (req, res, next) => {
+  try {
+    const query = Item.findById(req.params.id).populate('createdBy', 'name email avatar');
+    if (req.user && ['admin', 'guard'].includes(req.user.role)) {
+      query.select('+secretFeature');
+    } else {
+      query.select('-secretFeature');
+    }
+    const item = await query;
+    if (!item) return res.status(404).json({ message: 'Item not found' });
+    res.status(200).json({ item });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.createItem = async (req, res, next) => {
+  try {
+    const { type, title, description, category, location, date, secretFeature } = req.body;
+
+    if (type !== 'lost' && type !== 'found') {
+      return res.status(400).json({ message: 'Type must be lost or found' });
+    }
+    if (!title || !category || !location) {
+      return res.status(400).json({ message: 'Title, category and location are required' });
+    }
+
+    const image = await processImage(req.file);
+    const item = await Item.create({
+      title,
+      description,
+      type,
+      category,
+      location,
+      date: date ? new Date(date) : new Date(),
+      image,
+      secretFeature: type === 'found' ? secretFeature || '' : undefined,
+      createdBy: req.user._id,
+    });
+
+    let matches = [];
+    if (type === 'found') {
+      matches = await runMatchEngine(item);
+    }
+
+    res.status(201).json({ item, matches, matchCount: matches.length });
+  } catch (err) {
+    next(err);
+  }
+};

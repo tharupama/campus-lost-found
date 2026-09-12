@@ -1,0 +1,14 @@
+const router = require('express').Router();
+const authRoutes = require('./auth.routes');
+const itemRoutes = require('./item.routes');
+const claimRoutes = require('./claim.routes');
+const adminRoutes = require('./admin.routes');
+const notificationRoutes = require('./notification.routes');
+
+router.use('/auth', authRoutes);
+router.use('/items', itemRoutes);
+router.use('/claims', claimRoutes);
+router.use('/admin', adminRoutes);
+router.use('/notifications', notificationRoutes);
+
+module.exports = router;
