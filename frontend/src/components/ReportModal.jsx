@@ -105,7 +105,7 @@ export default function ReportModal({ open, onClose, type, prefill = {} }) {
             <button
               type="button"
               onClick={() => fileRef.current?.click()}
-              className="relative flex h-24 w-28 items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 transition hover:border-brand-400"
+              className="relative flex h-24 w-28 items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 transition hover:border-brand-400 dark:border-slate-700 dark:bg-slate-800"
             >
               {preview ? (
                 <img src={preview} alt="preview" className="h-full w-full object-cover" />
@@ -117,7 +117,7 @@ export default function ReportModal({ open, onClose, type, prefill = {} }) {
               )}
             </button>
             <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={onFileChange} />
-            <p className="text-xs leading-relaxed text-slate-400">
+            <p className="text-xs leading-relaxed text-slate-400 dark:text-slate-500">
               Tip: good lighting and a clean background help people recognize your item faster.
             </p>
           </div>
@@ -151,7 +151,7 @@ export default function ReportModal({ open, onClose, type, prefill = {} }) {
             <input type="date" className="input-field" value={form.date} onChange={set('date')} required />
           </Field>
           <Field label="Status">
-            <input className="input-field bg-slate-50 text-slate-500" value="Active" disabled />
+            <input className="input-field bg-slate-50 text-slate-500 dark:bg-slate-800 dark:text-slate-400" value="Active" disabled />
           </Field>
         </div>
 
@@ -185,13 +185,13 @@ export default function ReportModal({ open, onClose, type, prefill = {} }) {
           </Field>
         )}
 
-        <p className="text-xs text-slate-400">
-          Reporting as <span className="font-semibold text-slate-600">{user?.name}</span> ·{' '}
+        <p className="text-xs text-slate-400 dark:text-slate-500">
+          Reporting as <span className="font-semibold text-slate-600 dark:text-slate-300">{user?.name}</span> ·{' '}
           {user?.email}
         </p>
 
         {type === 'found' && (
-          <div className="rounded-xl border border-brand-100 bg-brand-50 p-3 text-xs leading-relaxed text-brand-700">
+          <div className="rounded-xl border border-brand-100 bg-brand-50 p-3 text-xs leading-relaxed text-brand-700 dark:border-brand-500/20 dark:bg-brand-500/10 dark:text-brand-300">
             Your find stays <span className="font-semibold">hidden from the public feed</span> until you hand
             it over to the guard room. You'll get reminder notifications until the item is dropped off.
           </div>

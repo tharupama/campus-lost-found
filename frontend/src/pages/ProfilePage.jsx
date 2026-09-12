@@ -130,8 +130,8 @@ export default function ProfilePage() {
           <UserRound size={20} />
         </span>
         <div>
-          <h1 className="text-xl font-extrabold text-midnight">My Profile</h1>
-          <p className="text-sm text-slate-400">Keep your contact details up to date</p>
+          <h1 className="text-xl font-extrabold text-midnight dark:text-white">My Profile</h1>
+          <p className="text-sm text-slate-400 dark:text-slate-500">Keep your contact details up to date</p>
         </div>
         {user && ['admin', 'guard'].includes(user.role) && (
           <button onClick={() => navigate('/admin')} className="btn-ghost ml-auto !px-3 !py-2 text-xs">
@@ -142,13 +142,13 @@ export default function ProfilePage() {
 
       <form onSubmit={handleSave} className="space-y-4">
         <div className="grid gap-4 md:grid-cols-2 md:items-start md:gap-5">
-        <div className="rounded-3xl bg-white p-5 shadow-card">
+        <div className="rounded-3xl bg-white p-5 shadow-card dark:bg-slate-900">
           <Field label="Profile Picture">
             <div className="flex items-center gap-4">
               <button
                 type="button"
                 onClick={() => fileRef.current?.click()}
-                className="relative flex h-20 w-20 items-center justify-center overflow-hidden rounded-full border-2 border-dashed border-slate-300 bg-slate-50 transition hover:border-brand-400"
+                className="relative flex h-20 w-20 items-center justify-center overflow-hidden rounded-full border-2 border-dashed border-slate-300 bg-slate-50 transition hover:border-brand-400 dark:border-slate-700 dark:bg-slate-800"
               >
                 {preview ? (
                   <img src={preview} alt="avatar" className="h-full w-full object-cover" />
@@ -160,7 +160,7 @@ export default function ProfilePage() {
                 </span>
               </button>
               <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={onFileChange} />
-              <p className="text-xs leading-relaxed text-slate-400">
+              <p className="text-xs leading-relaxed text-slate-400 dark:text-slate-500">
                 Choose a photo so people recognize you when you pick up or hand over items.
               </p>
             </div>
@@ -172,7 +172,7 @@ export default function ProfilePage() {
                 <input className="input-field" value={form.name} onChange={set('name')} placeholder="Your username" />
               </Field>
               <Field label="Email">
-                <input className="input-field bg-slate-50 text-slate-500" value={user?.email || ''} disabled />
+                <input className="input-field bg-slate-50 text-slate-500 dark:bg-slate-800 dark:text-slate-400" value={user?.email || ''} disabled />
               </Field>
             </div>
 
@@ -197,9 +197,9 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        <div className="rounded-3xl bg-white p-5 shadow-card">
-          <p className="mb-1 text-sm font-extrabold text-midnight">Change Password</p>
-          <p className="mb-4 text-xs text-slate-400">Leave blank to keep your current password</p>
+        <div className="rounded-3xl bg-white p-5 shadow-card dark:bg-slate-900">
+          <p className="mb-1 text-sm font-extrabold text-midnight dark:text-white">Change Password</p>
+          <p className="mb-4 text-xs text-slate-400 dark:text-slate-500">Leave blank to keep your current password</p>
           <div className="space-y-4">
             <Field label="Current Password">
               <input type="password" className="input-field" value={form.currentPassword} onChange={set('currentPassword')} placeholder="Current password" autoComplete="current-password" />
@@ -219,9 +219,9 @@ export default function ProfilePage() {
       </form>
 
       <div className="mt-8">
-        <h2 className="mb-3 text-sm font-extrabold uppercase tracking-wide text-slate-400">My Activity</h2>
+        <h2 className="mb-3 text-sm font-extrabold uppercase tracking-wide text-slate-400 dark:text-slate-500">My Activity</h2>
 
-        <div className="mb-4 flex gap-2 rounded-2xl bg-white p-1.5 shadow-card">
+        <div className="mb-4 flex gap-2 rounded-2xl bg-white p-1.5 shadow-card dark:bg-slate-900">
           {TABS.map((t) => {
             const count = t.key === 'claims' ? claims.length : myItems.filter((i) => i.type === t.key).length;
             return (
@@ -229,7 +229,7 @@ export default function ProfilePage() {
                 key={t.key}
                 onClick={() => setActivityTab(t.key)}
                 className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl py-2.5 text-xs font-bold transition ${
-                  activityTab === t.key ? 'bg-brand-600 text-white shadow-card' : 'text-slate-500 hover:bg-slate-50'
+                  activityTab === t.key ? 'bg-brand-600 text-white shadow-card' : 'text-slate-500 hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-800'
                 }`}
               >
                 <t.icon size={15} />
@@ -258,20 +258,20 @@ export default function ProfilePage() {
                 <>
                   <div>
                     <div className="mb-1 flex items-center justify-between gap-2">
-                      <p className="truncate text-sm font-bold text-midnight">{item?.title || 'Item'}</p>
+                      <p className="truncate text-sm font-bold text-midnight dark:text-white">{item?.title || 'Item'}</p>
                       <Badge color={claim.status}>{isResolved ? 'handed over' : claim.status}</Badge>
                     </div>
-                    <p className="mb-1 text-xs text-slate-400">
+                    <p className="mb-1 text-xs text-slate-400 dark:text-slate-500">
                       <MapPin size={11} className="inline" /> {item?.location || '—'} · claimed{' '}
                       {formatDistanceToNow(new Date(claim.createdAt), { addSuffix: true })}
                     </p>
-                    <p className="line-clamp-1 text-xs text-slate-500 italic">“{claim.proofAnswer}”</p>
+                    <p className="line-clamp-1 text-xs text-slate-500 italic dark:text-slate-400">“{claim.proofAnswer}”</p>
                   </div>
                   <div className="flex shrink-0 items-center gap-1.5">
                     {isApproved && (
                       <button
                         onClick={() => setQrClaim(claim)}
-                        className="btn-ghost !px-2.5 !py-2 text-xs !text-emerald-700 hover:!bg-emerald-50"
+                        className="btn-ghost !px-2.5 !py-2 text-xs !text-emerald-700 hover:!bg-emerald-50 dark:!text-emerald-400 dark:hover:!bg-emerald-500/10"
                         title="Show handover QR"
                       >
                         <QrCode size={14} /> QR
@@ -301,15 +301,15 @@ export default function ProfilePage() {
             render={(item) => {
               const handoverChip =
                 item.type === 'found' && item.handoverStatus !== 'in_vault'
-                  ? { label: 'awaiting drop-off', cls: 'bg-amber-100 text-amber-700' }
+                  ? { label: 'awaiting drop-off', cls: 'bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400' }
                   : item.type === 'found'
-                    ? { label: 'in guard room', cls: 'bg-emerald-50 text-emerald-700' }
+                    ? { label: 'in guard room', cls: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400' }
                     : null;
               return (
                 <>
                   <div>
                     <div className="mb-1 flex items-center justify-between gap-2">
-                      <p className="truncate text-sm font-bold text-midnight">{item.title}</p>
+                      <p className="truncate text-sm font-bold text-midnight dark:text-white">{item.title}</p>
                       <div className="flex shrink-0 items-center gap-1">
                         {handoverChip && (
                           <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${handoverChip.cls}`}>
@@ -319,12 +319,12 @@ export default function ProfilePage() {
                         <Badge color={item.status}>{item.status}</Badge>
                       </div>
                     </div>
-                    <p className="mb-1 text-xs text-slate-400">
+                    <p className="mb-1 text-xs text-slate-400 dark:text-slate-500">
                       <MapPin size={11} className="inline" /> {item.location} · {item.category} · reported{' '}
                       {formatDistanceToNow(new Date(item.createdAt), { addSuffix: true })}
                     </p>
                     {item.type === 'found' && item.handoverStatus === 'pending' && (
-                      <p className="text-[11px] text-amber-600">
+                      <p className="text-[11px] text-amber-600 dark:text-amber-400">
                         Hand it over to the guard room to make it visible publicly.
                       </p>
                     )}
@@ -342,11 +342,11 @@ export default function ProfilePage() {
       <Modal open={Boolean(qrClaim)} onClose={() => setQrClaim(null)} title="Your handover QR code">
         {qrClaim && (
           <div className="flex flex-col items-center gap-4">
-            <div className="rounded-2xl border-4 border-midnight bg-white p-4">
+            <div className="rounded-2xl border-4 border-midnight bg-white p-4 dark:border-white dark:bg-slate-900">
               <QRCodeSVG value={`${qrClaim._id}::${qrClaim.claimant}`} size={200} />
             </div>
-            <p className="text-center text-sm text-slate-500">
-              Show this at the security desk for <span className="font-bold text-midnight">{qrClaim.item?.title}</span>.
+            <p className="text-center text-sm text-slate-500 dark:text-slate-400">
+              Show this at the security desk for <span className="font-bold text-midnight dark:text-white">{qrClaim.item?.title}</span>.
               The guard scans it to verify your claim is approved and hands over the item.
             </p>
             <Badge color="approved">approved</Badge>
@@ -362,10 +362,10 @@ function ActivityList({ items, empty, render }) {
   const [title, subtitle, to, label] = empty;
   if (items.length === 0) {
     return (
-      <div className="flex flex-col items-center rounded-3xl bg-white py-14 text-center shadow-card">
-        <span className="mb-3 flex h-14 w-14 items-center justify-center rounded-3xl bg-slate-50 text-2xl">📭</span>
-        <p className="font-bold text-midnight">{title}</p>
-        <p className="mt-1 max-w-xs text-sm text-slate-400">{subtitle}</p>
+      <div className="flex flex-col items-center rounded-3xl bg-white py-14 text-center shadow-card dark:bg-slate-900">
+        <span className="mb-3 flex h-14 w-14 items-center justify-center rounded-3xl bg-slate-50 text-2xl dark:bg-slate-800">📭</span>
+        <p className="font-bold text-midnight dark:text-white">{title}</p>
+        <p className="mt-1 max-w-xs text-sm text-slate-400 dark:text-slate-500">{subtitle}</p>
         {to && (
           <button onClick={() => navigate(to)} className="btn-primary mt-4">
             {label}
@@ -377,7 +377,7 @@ function ActivityList({ items, empty, render }) {
   return (
     <div className="space-y-3">
       {items.map((entry, idx) => (
-        <div key={entry._id || idx} className="flex items-center gap-3 rounded-2xl bg-white p-3 shadow-card">
+        <div key={entry._id || idx} className="flex items-center gap-3 rounded-2xl bg-white p-3 shadow-card dark:bg-slate-900">
           {entry?.item?.image || entry.image ? (
             <img
               src={entry.item?.image || entry.image}
@@ -386,7 +386,7 @@ function ActivityList({ items, empty, render }) {
               onClick={() => navigate(`/items/${(entry.item || entry)._id}`)}
             />
           ) : (
-            <span className="flex h-20 w-24 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-2xl">🖼️</span>
+            <span className="flex h-20 w-24 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-2xl dark:bg-slate-800">🖼️</span>
           )}
           <div className="min-w-0 flex-1">{render(entry)}</div>
         </div>

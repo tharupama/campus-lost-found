@@ -97,4 +97,16 @@ export const adminService = {
     const { data } = await api.post('/admin/handover', payload);
     return data;
   },
+  async getUsers(search = '') {
+    const { data } = await api.get('/admin/users', { params: search ? { search } : {} });
+    return data;
+  },
+  async updateUser(id, payload) {
+    const { data } = await api.put(`/admin/users/${id}`, payload);
+    return data;
+  },
+  async deleteUser(id) {
+    const { data } = await api.delete(`/admin/users/${id}`);
+    return data;
+  },
 };

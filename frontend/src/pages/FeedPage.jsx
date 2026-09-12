@@ -42,11 +42,11 @@ export default function FeedPage() {
         <Spinner full />
       ) : items.length === 0 ? (
         <div className="flex flex-col items-center py-20 text-center">
-          <span className="mb-3 flex h-16 w-16 items-center justify-center rounded-3xl bg-white text-3xl shadow-card">
+          <span className="mb-3 flex h-16 w-16 items-center justify-center rounded-3xl bg-white text-3xl shadow-card dark:bg-slate-900">
             🔎
           </span>
-          <p className="text-lg font-bold text-midnight">Nothing here yet</p>
-          <p className="mt-1 max-w-xs text-sm text-slate-400">
+          <p className="text-lg font-bold text-midnight dark:text-white">Nothing here yet</p>
+          <p className="mt-1 max-w-xs text-sm text-slate-400 dark:text-slate-400">
             Try different filters or search — or be the first to report an item.
           </p>
         </div>

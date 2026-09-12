@@ -23,6 +23,10 @@ async function connectDB() {
     cached.promise = null;
     throw new Error(`[db] connection error: ${err.message}`);
   }
+  const Item = require('../models/Item.model');
+  await Item.collection
+    .createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 })
+    .catch(() => {});
   console.log(`[db] connected ${mongoose.connection.host}/${mongoose.connection.name}`);
   return cached.conn;
 }

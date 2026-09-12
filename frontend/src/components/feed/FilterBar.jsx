@@ -33,7 +33,7 @@ export default function FilterBar({ filters, onChange }) {
         />
         <button
           onClick={() => setOpen(true)}
-          className="absolute right-1.5 top-1/2 -translate-y-1/2 rounded-xl p-2 text-slate-400 transition hover:bg-slate-100 hover:text-brand-600"
+          className="absolute right-1.5 top-1/2 -translate-y-1/2 rounded-xl p-2 text-slate-400 transition hover:bg-slate-100 hover:text-brand-600 dark:hover:bg-slate-800"
           aria-label="Filters"
         >
           <SlidersHorizontal size={19} />
@@ -48,7 +48,7 @@ export default function FilterBar({ filters, onChange }) {
             className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-semibold transition ${
               filters.type === t.key
                 ? 'bg-brand-600 text-white shadow-card'
-                : 'bg-white text-slate-500 hover:bg-slate-50'
+                : 'bg-white text-slate-500 hover:bg-slate-50 dark:bg-slate-900 dark:text-slate-400 dark:hover:bg-slate-800'
             }`}
           >
             {t.label}
@@ -62,7 +62,7 @@ export default function FilterBar({ filters, onChange }) {
             <button
               key={chip.key}
               onClick={() => remove(chip.key)}
-              className="inline-flex items-center gap-1 rounded-full bg-brand-50 px-3 py-1 text-xs font-semibold text-brand-700"
+              className="inline-flex items-center gap-1 rounded-full bg-brand-50 px-3 py-1 text-xs font-semibold text-brand-700 dark:bg-brand-500/15 dark:text-brand-300"
             >
               {chip.label}
               <X size={12} />
@@ -77,14 +77,14 @@ export default function FilterBar({ filters, onChange }) {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="overflow-hidden rounded-2xl bg-white p-4 shadow-card"
+            className="overflow-hidden rounded-2xl bg-white p-4 shadow-card dark:bg-slate-900"
           >
             <div className="mb-2 flex items-center justify-between">
-              <p className="text-sm font-bold text-midnight">Filters</p>
+              <p className="text-sm font-bold text-midnight dark:text-white">Filters</p>
               <Badge color="system">{CATEGORIES.length} categories</Badge>
             </div>
             <div className="mb-3">
-              <p className="mb-1.5 text-[11px] font-bold uppercase tracking-wide text-slate-400">Category</p>
+              <p className="mb-1.5 text-[11px] font-bold uppercase tracking-wide text-slate-400 dark:text-slate-500">Category</p>
               <div className="flex flex-wrap gap-1.5">
                 <Chip active={!filters.category} onClick={() => onChange({ ...filters, category: '' })}>All</Chip>
                 {CATEGORIES.map((c) => (
@@ -95,7 +95,7 @@ export default function FilterBar({ filters, onChange }) {
               </div>
             </div>
             <div>
-              <p className="mb-1.5 text-[11px] font-bold uppercase tracking-wide text-slate-400">Building</p>
+              <p className="mb-1.5 text-[11px] font-bold uppercase tracking-wide text-slate-400 dark:text-slate-500">Building</p>
               <div className="flex flex-wrap gap-1.5">
                 <Chip active={!filters.location} onClick={() => onChange({ ...filters, location: '' })}>All</Chip>
                 {BUILDINGS.map((b) => (
@@ -120,7 +120,7 @@ function Chip({ active, onClick, children }) {
     <button
       onClick={onClick}
       className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
-        active ? 'bg-brand-600 text-white' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
+        active ? 'bg-brand-600 text-white' : 'bg-slate-100 text-slate-500 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700'
       }`}
     >
       {children}

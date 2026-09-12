@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Mail, Loader2, Send, ArrowLeft, MailCheck } from 'lucide-react';
+import { Mail, Loader2, Send, ArrowLeft, MailCheck, GraduationCap } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { authService } from '../services';
 
@@ -34,7 +34,7 @@ export default function ForgotPasswordPage() {
       >
         <div className="mb-6 flex flex-col items-center text-center text-white">
           <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-3xl bg-white/15 backdrop-blur">
-            <span className="text-3xl font-black">C</span>
+            <GraduationCap size={30} className="text-white" />
           </div>
           <h1 className="text-2xl font-black">CampusLost</h1>
           <p className="mt-1 text-sm text-white/70">Reset your password</p>

@@ -31,7 +31,7 @@ export default function BottomNav({ openReport }) {
   }
 
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/90 backdrop-blur-lg md:hidden">
+    <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/90 backdrop-blur-lg dark:border-slate-800 dark:bg-slate-900/90 md:hidden">
       <div className="mx-auto grid max-w-lg grid-cols-5 items-center pb-[env(safe-area-inset-bottom)]">
         <NavItem item={items[0]} />
         <NavItem item={items[1]} />
@@ -63,10 +63,10 @@ function NavItem({ item }) {
               className="absolute -top-px h-0.5 w-8 rounded-full bg-brand-600"
             />
           )}
-          <item.icon size={21} className={isActive ? 'text-brand-600' : 'text-slate-400'} />
+          <item.icon size={21} className={isActive ? 'text-brand-600 dark:text-brand-400' : 'text-slate-400 dark:text-slate-500'} />
           <span
             className={`mt-0.5 text-[10px] font-semibold ${
-              isActive ? 'text-brand-600' : 'text-slate-400'
+              isActive ? 'text-brand-600 dark:text-brand-400' : 'text-slate-400 dark:text-slate-500'
             }`}
           >
             {item.label}

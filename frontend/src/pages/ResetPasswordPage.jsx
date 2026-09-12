@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Lock, Loader2, KeyRound, ShieldCheck } from 'lucide-react';
+import { Lock, Loader2, KeyRound, ShieldCheck, GraduationCap } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { authService } from '../services';
 
@@ -41,7 +41,7 @@ export default function ResetPasswordPage() {
       >
         <div className="mb-6 flex flex-col items-center text-center text-white">
           <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-3xl bg-white/15 backdrop-blur">
-            <span className="text-3xl font-black">C</span>
+            <GraduationCap size={30} className="text-white" />
           </div>
           <h1 className="text-2xl font-black">CampusLost</h1>
           <p className="mt-1 text-sm text-white/70">Choose a new password</p>

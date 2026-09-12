@@ -11,6 +11,7 @@ const itemSchema = new mongoose.Schema(
     image: { type: String },
     status: { type: String, enum: ['active', 'claimed', 'resolved'], default: 'active', index: true },
     handoverStatus: { type: String, enum: ['pending', 'in_vault'], default: 'pending', index: true },
+    expiresAt: { type: Date, index: { expires: 0 }, default: null },
     handedOverAt: { type: Date },
     lastReminderAt: { type: Date },
     secretFeature: { type: String, select: false, trim: true },

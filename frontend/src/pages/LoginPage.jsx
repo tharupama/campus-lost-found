@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Mail, Lock, UserRound, Loader2, ShieldCheck, Building2 } from 'lucide-react';
+import { Mail, Lock, UserRound, Loader2, ShieldCheck, Building2, GraduationCap } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuth } from '../contexts/AuthContext';
 import { DEMO_ACCOUNTS, GOOGLE_CLIENT_ID } from '../config/constants';
@@ -120,12 +120,12 @@ export default function LoginPage() {
             whileHover={{ rotate: -4, scale: 1.05 }}
             className="mb-4 flex h-16 w-16 items-center justify-center rounded-3xl bg-white/15 backdrop-blur"
           >
-            <span className="text-3xl font-black">C</span>
+            <GraduationCap size={30} className="text-white" />
           </motion.div>
-          <h1 className="text-2xl font-black">CampusLost</h1>
+          <h1 className="text-2xl font-black">LOST AND FOUND SYSTEM</h1>
           <p className="mt-1 flex items-center gap-1.5 text-sm text-white/70">
             <Building2 size={15} />
-            {import.meta.env.VITE_SCHOOL_NAME || 'Summerfield University'} · Lost &amp; Found
+            {'University Of Ruhuna'}
           </p>
         </div>
 

@@ -20,7 +20,7 @@ export default function AppShell() {
       <BottomNav openReport={() => openReport()} />
       <div className="hidden md:fixed md:bottom-6 md:left-1/2 md:z-40 md:flex md:-translate-x-1/2 md:gap-3">
         <button onClick={() => openReport('lost')} className="btn-primary shadow-glow">Lost an item?</button>
-        <button onClick={() => openReport('found')} className="btn-ghost bg-white/90">
+        <button onClick={() => openReport('found')} className="btn-ghost bg-white/90 dark:bg-slate-900/90">
           Found something?
         </button>
       </div>

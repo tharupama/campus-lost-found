@@ -3,6 +3,8 @@ const { runMatchEngine } = require('../services/matchEngine.service');
 const { processImage } = require('../services/upload.service');
 const { notifyItemFound } = require('../services/notification.service');
 
+const FOUND_ITEM_EXPIRY_DAYS = 90;
+
 exports.getItems = async (req, res, next) => {
   try {
     const { type, category, location, status, search } = req.query;
@@ -88,6 +90,7 @@ exports.createItem = async (req, res, next) => {
       date: date ? new Date(date) : new Date(),
       image,
       secretFeature: type === 'found' ? secretFeature || '' : undefined,
+      expiresAt: type === 'found' ? new Date(Date.now() + FOUND_ITEM_EXPIRY_DAYS * 24 * 60 * 60 * 1000) : null,
       createdBy: req.user._id,
     });
 

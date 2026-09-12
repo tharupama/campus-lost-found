@@ -66,16 +66,16 @@ export default function ItemDetailPage() {
 
   return (
     <div className="mx-auto max-w-3xl px-4 pb-28 pt-4">
-      <button onClick={() => navigate(-1)} className="mb-3 inline-flex items-center gap-1.5 text-sm font-semibold text-slate-500 hover:text-brand-600">
+      <button onClick={() => navigate(-1)} className="mb-3 inline-flex items-center gap-1.5 text-sm font-semibold text-slate-500 hover:text-brand-600 dark:text-slate-400">
         <ArrowLeft size={17} /> Back
       </button>
 
-      <div className="overflow-hidden rounded-3xl bg-white shadow-card">
+      <div className="overflow-hidden rounded-3xl bg-white shadow-card dark:bg-slate-900">
         <div className="relative">
           {item.image ? (
             <img src={item.image} alt={item.title} className="max-h-[420px] w-full object-cover" />
           ) : (
-            <div className="flex h-56 items-center justify-center bg-gradient-to-br from-brand-100 to-violet-100">
+            <div className="flex h-56 items-center justify-center bg-gradient-to-br from-brand-100 to-violet-100 dark:from-brand-500/20 dark:to-violet-500/20">
               <ShieldCheck className="text-brand-300" size={56} />
             </div>
           )}
@@ -87,11 +87,11 @@ export default function ItemDetailPage() {
 
         <div className="space-y-3 p-5">
           <div className="flex items-start justify-between gap-3">
-            <h1 className="text-xl font-extrabold text-midnight">{item.title}</h1>
+            <h1 className="text-xl font-extrabold text-midnight dark:text-white">{item.title}</h1>
             <Badge color="system">{item.category}</Badge>
           </div>
 
-          <div className="flex flex-wrap gap-3 text-sm text-slate-500">
+          <div className="flex flex-wrap gap-3 text-sm text-slate-500 dark:text-slate-400">
             <span className="inline-flex items-center gap-1"><MapPin size={15} /> {item.location}</span>
             <span className="inline-flex items-center gap-1">
               <CalendarDays size={15} title="Date" />
@@ -100,13 +100,13 @@ export default function ItemDetailPage() {
           </div>
 
           {item.description && (
-            <p className="rounded-2xl bg-slate-50 p-4 text-sm leading-relaxed text-slate-600">
+            <p className="rounded-2xl bg-slate-50 p-4 text-sm leading-relaxed text-slate-600 dark:bg-slate-800 dark:text-slate-300">
               {item.description}
             </p>
           )}
 
-          <div className="flex items-center justify-between border-t border-slate-100 pt-3 text-xs text-slate-400">
-            <span>Reported by <span className="font-semibold text-slate-600">{item.createdBy?.name}</span></span>
+          <div className="flex items-center justify-between border-t border-slate-100 pt-3 text-xs text-slate-400 dark:border-slate-800">
+            <span>Reported by <span className="font-semibold text-slate-600 dark:text-slate-300">{item.createdBy?.name}</span></span>
             {isFound && item.status === 'active' && (
               <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-600">
                 <KeyRound size={12} /> Owner unlocked by secret mark
@@ -135,11 +135,11 @@ export default function ItemDetailPage() {
               </>
             )
           ) : ownsItem ? (
-            <p className="w-full rounded-xl bg-brand-50 py-3 text-center text-sm font-semibold text-brand-600">
+            <p className="w-full rounded-xl bg-brand-50 py-3 text-center text-sm font-semibold text-brand-600 dark:bg-brand-500/15 dark:text-brand-300">
               You reported this item
             </p>
           ) : (
-            <p className="w-full rounded-xl bg-slate-100 py-3 text-center text-sm font-semibold text-slate-500">
+            <p className="w-full rounded-xl bg-slate-100 py-3 text-center text-sm font-semibold text-slate-500 dark:bg-slate-800 dark:text-slate-400">
               {item.status === 'claimed' ? 'Already claimed — pending handover' : 'This item has been resolved'}
             </p>
           )}
@@ -157,7 +157,7 @@ export default function ItemDetailPage() {
 
       <Modal open={claimOpen} onClose={() => setClaimOpen(false)} title="Claim this item">
         <form onSubmit={submitClaim} className="space-y-4">
-          <div className="rounded-2xl bg-amber-50 p-4 text-sm text-amber-700">
+          <div className="rounded-2xl bg-amber-50 p-4 text-sm text-amber-700 dark:bg-amber-500/10 dark:text-amber-300">
             {isFound
               ? 'This item has a secret mark set by the finder. To prove it is yours, describe the secret mark exactly as you remember it.'
               : 'Describe identifying details only the real owner would know — color, stickers, scratches, contents, etc.'}

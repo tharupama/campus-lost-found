@@ -1,6 +1,101 @@
 const Claim = require('../models/Claim.model');
 const Item = require('../models/Item.model');
+const User = require('../models/User.model');
 const { notifyClaimUpdate, notifyItemInVault } = require('../services/notification.service');
+
+const ROLES = ['student', 'guard', 'admin', 'user'];
+
+exports.getUsers = async (req, res, next) => {
+  try {
+    const q = String(req.query.search || '').trim();
+    const filter = q
+      ? {
+          $or: [
+            { name: { $regex: q, $options: 'i' } },
+            { email: { $regex: q, $options: 'i' } },
+            { mobileNumber: { $regex: q, $options: 'i' } },
+          ],
+        }
+      : {};
+
+    const users = await User.find(filter).select('-password').sort({ createdAt: -1 });
+    res.status(200).json({ users });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.updateUser = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    const { name, email, role, mobileNumber, address, password } = req.body;
+
+    if (name !== undefined) user.name = String(name).trim();
+    if (mobileNumber !== undefined) user.mobileNumber = String(mobileNumber).trim();
+    if (address !== undefined) user.address = String(address).trim();
+
+    if (email !== undefined) {
+      const mail = String(email).toLowerCase().trim();
+      if (!mail) return res.status(400).json({ message: 'Email is required' });
+      const clash = await User.findOne({ email: mail, _id: { $ne: user._id } });
+      if (clash) return res.status(409).json({ message: 'Another account already uses this email' });
+      user.email = mail;
+    }
+
+    if (role !== undefined) {
+      if (!ROLES.includes(role)) {
+        return res.status(400).json({ message: 'Invalid role' });
+      }
+      if (String(user._id) === String(req.user._id) && role !== 'admin') {
+        return res.status(400).json({ message: 'You cannot change your own admin role' });
+      }
+      if (user.role === 'admin' && role !== 'admin') {
+        const adminCount = await User.countDocuments({ role: 'admin' });
+        if (adminCount <= 1) {
+          return res.status(400).json({ message: 'Cannot demote the last admin' });
+        }
+      }
+      user.role = role;
+    }
+
+    if (password !== undefined && password !== '') {
+      if (String(password).length < 6) {
+        return res.status(400).json({ message: 'Password must be at least 6 characters' });
+      }
+      user.password = String(password);
+    }
+
+    await user.save();
+    user.password = undefined;
+    res.status(200).json({ user, message: 'User updated' });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.deleteUser = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    if (String(user._id) === String(req.user._id)) {
+      return res.status(400).json({ message: 'You cannot delete your own account' });
+    }
+    if (user.role === 'admin') {
+      const adminCount = await User.countDocuments({ role: 'admin' });
+      if (adminCount <= 1) {
+        return res.status(400).json({ message: 'Cannot delete the last admin' });
+      }
+    }
+
+    await user.deleteOne();
+    res.status(200).json({ message: 'User deleted' });
+  } catch (err) {
+    next(err);
+  }
+};
 
 exports.getClaims = async (req, res, next) => {
   try {
