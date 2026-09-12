@@ -40,7 +40,7 @@ export default function ForgotPasswordPage() {
           <p className="mt-1 text-sm text-white/70">Reset your password</p>
         </div>
 
-        <div className="rounded-3xl bg-white p-6 shadow-2xl">
+        <div className="auth-card rounded-3xl bg-white p-6 shadow-2xl">
           {sent ? (
             <div className="flex flex-col items-center text-center">
               <span className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">

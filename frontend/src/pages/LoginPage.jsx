@@ -129,7 +129,7 @@ export default function LoginPage() {
           </p>
         </div>
 
-        <div className="rounded-3xl bg-white p-6 shadow-2xl">
+        <div className="auth-card rounded-3xl bg-white p-6 shadow-2xl">
           <h2 className="text-lg font-extrabold text-midnight">
             {mode === 'register' ? 'Create your account' : 'Sign in with your campus account'}
           </h2>

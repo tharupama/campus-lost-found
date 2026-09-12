@@ -47,7 +47,7 @@ export default function ResetPasswordPage() {
           <p className="mt-1 text-sm text-white/70">Choose a new password</p>
         </div>
 
-        <div className="rounded-3xl bg-white p-6 shadow-2xl">
+        <div className="auth-card rounded-3xl bg-white p-6 shadow-2xl">
           {!token ? (
             <div className="flex flex-col items-center text-center">
               <span className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 text-slate-400">

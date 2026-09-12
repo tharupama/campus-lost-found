@@ -2,6 +2,21 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer utilities {
+  .auth-card .input-field {
+    border-color: theme('colors.slate.200');
+    background-color: theme('colors.white');
+    color: theme('colors.slate.800');
+  }
+  .auth-card .input-field::placeholder {
+    color: theme('colors.slate.400');
+  }
+  .auth-card .input-field:focus {
+    border-color: theme('colors.brand.500');
+    box-shadow: 0 0 0 3px theme('colors.brand.200');
+  }
+}
+
 @layer base {
   html {
     -webkit-tap-highlight-color: transparent;
