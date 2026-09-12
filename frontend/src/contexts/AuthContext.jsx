@@ -39,6 +39,30 @@ export function AuthProvider({ children }) {
     return data.user;
   };
 
+  const register = async ({ username, email, password }) => {
+    const data = await authService.register({ username, email, password });
+    localStorage.setItem('clf_token', data.token);
+    localStorage.setItem('clf_user', JSON.stringify(data.user));
+    setToken(data.token);
+    setUser(data.user);
+    return data.user;
+  };
+
+  const googleLogin = async (credential) => {
+    const data = await authService.googleLogin(credential);
+    localStorage.setItem('clf_token', data.token);
+    localStorage.setItem('clf_user', JSON.stringify(data.user));
+    setToken(data.token);
+    setUser(data.user);
+    return data.user;
+  };
+
+  const updateUser = (next) => {
+    localStorage.setItem('clf_user', JSON.stringify(next));
+    setUser(next);
+    return next;
+  };
+
   const logout = () => {
     localStorage.removeItem('clf_token');
     localStorage.removeItem('clf_user');
@@ -47,7 +71,7 @@ export function AuthProvider({ children }) {
   };
 
   const value = useMemo(
-    () => ({ user, token, loading, login, logout }),
+    () => ({ user, token, loading, login, register, googleLogin, logout, updateUser }),
     [user, token, loading]
   );
 

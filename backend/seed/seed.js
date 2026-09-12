@@ -33,21 +33,18 @@ async function seed() {
     email: 'guard@campus.edu',
     password: 'Guard@123',
     role: 'guard',
-    studentId: 'SEC-1101',
   });
   const alex = await User.create({
     name: 'Alex Morgan',
     email: 'alex@student.edu',
     password: 'Student@123',
     role: 'student',
-    studentId: 'STU-2201',
   });
   const maya = await User.create({
     name: 'Maya Chen',
     email: 'maya@student.edu',
     password: 'Student@123',
     role: 'student',
-    studentId: 'STU-2202',
   });
 
   const foundItems = await Item.insertMany([

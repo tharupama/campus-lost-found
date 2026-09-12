@@ -55,6 +55,18 @@ exports.getItem = async (req, res, next) => {
   }
 };
 
+exports.getMyItems = async (req, res, next) => {
+  try {
+    const { type } = req.query;
+    const filter = { createdBy: req.user._id };
+    if (type) filter.type = type;
+    const items = await Item.find(filter).sort({ createdAt: -1 }).limit(100);
+    res.status(200).json({ items });
+  } catch (err) {
+    next(err);
+  }
+};
+
 exports.createItem = async (req, res, next) => {
   try {
     const { type, title, description, category, location, date, secretFeature } = req.body;
@@ -81,7 +93,7 @@ exports.createItem = async (req, res, next) => {
 
     let matches = [];
     if (type === 'found') {
-      await notifyItemFound(item);
+      await notifyItemFound(await item.populate('createdBy', 'name email'));
       matches = await runMatchEngine(item);
     }
 

@@ -5,11 +5,14 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { NotificationProvider } from './contexts/NotificationContext';
 import AppShell from './components/layout/AppShell';
 import LoginPage from './pages/LoginPage';
+import ForgotPasswordPage from './pages/ForgotPasswordPage';
+import ResetPasswordPage from './pages/ResetPasswordPage';
 import FeedPage from './pages/FeedPage';
 import ItemDetailPage from './pages/ItemDetailPage';
 import MyClaimsPage from './pages/MyClaimsPage';
 import NotificationsPage from './pages/NotificationsPage';
 import AdminPage from './pages/AdminPage';
+import ProfilePage from './pages/ProfilePage';
 import Spinner from './components/ui/Spinner';
 
 function ScrollToTop() {
@@ -48,6 +51,8 @@ export default function App() {
           <ScrollToTop />
           <Routes>
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route
               element={
                 <LoginGate>
@@ -59,6 +64,7 @@ export default function App() {
               <Route path="/items/:id" element={<ItemDetailPage />} />
               <Route path="/my-claims" element={<MyClaimsPage />} />
               <Route path="/notifications" element={<NotificationsPage />} />
+              <Route path="/profile" element={<ProfilePage />} />
               <Route
                 path="/admin"
                 element={

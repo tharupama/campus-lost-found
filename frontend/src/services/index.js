@@ -1,12 +1,34 @@
 import api from './apiClient';
 
 export const authService = {
+  async register(payload) {
+    const { data } = await api.post('/auth/register', payload);
+    return data;
+  },
+  async googleLogin(credential) {
+    const { data } = await api.post('/auth/google', { credential });
+    return data;
+  },
   async login(email, password) {
     const { data } = await api.post('/auth/login', { email, password });
     return data;
   },
   async getMe() {
     const { data } = await api.get('/auth/me');
+    return data;
+  },
+  async forgotPassword(email) {
+    const { data } = await api.post('/auth/forgot-password', { email });
+    return data;
+  },
+  async resetPassword(token, password) {
+    const { data } = await api.post('/auth/reset-password', { token, password });
+    return data;
+  },
+  async updateProfile(formData) {
+    const { data } = await api.put('/auth/profile', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
     return data;
   },
 };
@@ -18,6 +40,10 @@ export const itemService = {
   },
   async getItem(id) {
     const { data } = await api.get(`/items/${id}`);
+    return data;
+  },
+  async getMyItems(type = '') {
+    const { data } = await api.get('/items/mine', { params: type ? { type } : {} });
     return data;
   },
   async createItem(formData) {

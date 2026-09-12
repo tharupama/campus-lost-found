@@ -9,7 +9,7 @@ exports.getClaims = async (req, res, next) => {
 
     const claims = await Claim.find(filter)
       .populate('item', 'title category location image type status createdBy date')
-      .populate('claimant', 'name email avatar studentId')
+      .populate('claimant', 'name email avatar')
       .populate('reviewedBy', 'name')
       .sort({ createdAt: -1 });
 
@@ -55,8 +55,8 @@ exports.getVault = async (req, res, next) => {
   try {
     const items = await Item.find({ status: { $in: ['active', 'claimed'] } })
       .select('+secretFeature')
-      .populate('createdBy', 'name email studentId')
-      .populate('claimedBy', 'name email studentId')
+      .populate('createdBy', 'name email avatar')
+      .populate('claimedBy', 'name email avatar')
       .sort({ createdAt: -1 });
     res.status(200).json({ items });
   } catch (err) {

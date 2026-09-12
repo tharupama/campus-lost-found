@@ -1,5 +1,5 @@
 const Item = require('../models/Item.model');
-const Notification = require('../models/Notification.model');
+const { notifyUser } = require('./notification.service');
 
 const WEIGHTS = {
   category: 30,
@@ -38,7 +38,7 @@ async function runMatchEngine(foundItem) {
     status: 'active',
     location: foundItem.location,
     date: { $gte: windowStart },
-  });
+  }).populate('createdBy', 'name email');
 
   const matches = [];
 
@@ -52,7 +52,7 @@ async function runMatchEngine(foundItem) {
     if (score >= MIN_SCORE) {
       matches.push({ lostItemId: lostItem._id, foundItemId: foundItem._id, score });
 
-      await Notification.create({
+      await notifyUser({
         user: lostItem.createdBy,
         type: 'match',
         title: 'Potential match spotted!',

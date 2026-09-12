@@ -43,12 +43,15 @@ export default function TopBar() {
           {user && (
             <div className="flex items-center gap-1">
               <button
-                onClick={() =>
-                  navigate(user && ['admin', 'guard'].includes(user.role) ? '/admin' : '/my-claims')
-                }
-                className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-brand-100 to-violet-100 text-sm font-extrabold text-brand-600"
+                onClick={() => navigate('/profile')}
+                className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-brand-100 to-violet-100 text-sm font-extrabold text-brand-600"
+                aria-label="My profile"
               >
-                {user.name?.charAt(0).toUpperCase()}
+                {user.avatar ? (
+                  <img src={user.avatar} alt={user.name} className="h-full w-full object-cover" />
+                ) : (
+                  user.name?.charAt(0).toUpperCase()
+                )}
               </button>
               <button
                 onClick={() => {

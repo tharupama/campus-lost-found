@@ -346,7 +346,7 @@ export default function AdminPage() {
             <form onSubmit={handleScan} className="space-y-3">
               <input
                 className="input-field text-center"
-                placeholder="Paste claimant QR code (claimId::studentId)"
+                placeholder="Paste claimant QR code (claimId::claimantId)"
                 value={scanCode}
                 onChange={(e) => setScanCode(e.target.value)}
               />
@@ -372,7 +372,7 @@ export default function AdminPage() {
                     <span className="min-w-0 flex-1">
                       <span className="block truncate text-xs font-bold text-midnight">{claim.item?.title}</span>
                       <span className="block truncate text-[11px] text-slate-400">
-                        {claim.item?.location} · to {claim.claimant?.name} ({claim.claimant?.studentId || claim.claimant?.email})
+                        {claim.item?.location} · to {claim.claimant?.name} ({claim.claimant?.email})
                       </span>
                     </span>
                     <span className="text-[11px] font-semibold text-brand-600">hand over</span>
