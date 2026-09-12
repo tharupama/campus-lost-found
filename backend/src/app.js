@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
+const mongoose = require('mongoose');
 const routes = require('./routes');
 const { notFound, errorHandler } = require('./middleware/error.middleware');
 
@@ -21,7 +22,13 @@ app.get('/', (req, res) => {
 });
 
 app.get('/api/health', (req, res) => {
-  res.status(200).json({ status: 'ok', service: 'campus-lost-found-api' });
+  const states = ['disconnected', 'connected', 'connecting', 'disconnecting'];
+  res.status(200).json({
+    status: 'ok',
+    service: 'campus-lost-found-api',
+    db: states[mongoose.connection.readyState] || 'unknown',
+    hasMongoUri: Boolean(process.env.MONGO_URI),
+  });
 });
 
 app.use('/api', routes);
