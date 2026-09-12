@@ -1,6 +1,7 @@
 const Item = require('../models/Item.model');
 const { runMatchEngine } = require('../services/matchEngine.service');
 const { processImage } = require('../services/upload.service');
+const { notifyItemFound } = require('../services/notification.service');
 
 exports.getItems = async (req, res, next) => {
   try {
@@ -13,12 +14,18 @@ exports.getItems = async (req, res, next) => {
     if (status) filter.status = status;
     if (!status && !type) filter.status = { $in: ['active', 'claimed'] };
 
+    filter.$and = [
+      { $or: [{ type: { $ne: 'found' } }, { handoverStatus: 'in_vault' }] },
+    ];
+
     if (search) {
-      filter.$or = [
-        { title: { $regex: search, $options: 'i' } },
-        { description: { $regex: search, $options: 'i' } },
-        { category: { $regex: search, $options: 'i' } },
-      ];
+      filter.$and.push({
+        $or: [
+          { title: { $regex: search, $options: 'i' } },
+          { description: { $regex: search, $options: 'i' } },
+          { category: { $regex: search, $options: 'i' } },
+        ],
+      });
     }
 
     const items = await Item.find(filter)
@@ -74,6 +81,7 @@ exports.createItem = async (req, res, next) => {
 
     let matches = [];
     if (type === 'found') {
+      await notifyItemFound(item);
       matches = await runMatchEngine(item);
     }
 

@@ -1,6 +1,6 @@
 const Claim = require('../models/Claim.model');
 const Item = require('../models/Item.model');
-const { notifyClaimUpdate } = require('../services/notification.service');
+const { notifyClaimUpdate, notifyItemInVault } = require('../services/notification.service');
 
 exports.getClaims = async (req, res, next) => {
   try {
@@ -55,9 +55,33 @@ exports.getVault = async (req, res, next) => {
   try {
     const items = await Item.find({ status: { $in: ['active', 'claimed'] } })
       .select('+secretFeature')
+      .populate('createdBy', 'name email studentId')
       .populate('claimedBy', 'name email studentId')
       .sort({ createdAt: -1 });
     res.status(200).json({ items });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.markAvailable = async (req, res, next) => {
+  try {
+    const item = await Item.findById(req.params.id);
+    if (!item) return res.status(404).json({ message: 'Item not found' });
+    if (item.type !== 'found') {
+      return res.status(400).json({ message: 'Only found items can be marked as in the guard room' });
+    }
+    if (item.status !== 'active') {
+      return res.status(400).json({ message: `Item must be active to be marked available (current: ${item.status})` });
+    }
+
+    item.handoverStatus = 'in_vault';
+    item.handedOverAt = new Date();
+    item.lastReminderAt = new Date();
+    await item.save();
+
+    await notifyItemInVault(await item.populate('createdBy'));
+    res.status(200).json({ item, message: 'Item marked as available in the guard room. It is now visible in the public feed.' });
   } catch (err) {
     next(err);
   }

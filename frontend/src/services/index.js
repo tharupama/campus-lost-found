@@ -63,6 +63,10 @@ export const adminService = {
     const { data } = await api.get('/admin/vault');
     return data;
   },
+  async markItemAvailable(id) {
+    const { data } = await api.patch(`/admin/items/${id}/available`);
+    return data;
+  },
   async handover(payload) {
     const { data } = await api.post('/admin/handover', payload);
     return data;

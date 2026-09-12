@@ -37,4 +37,38 @@ function sendEmail(to, subject, html) {
   return transporter.sendMail({ from: process.env.SMTP_FROM, to, subject, html });
 }
 
-module.exports = { notifyUser, notifyClaimUpdate, sendEmail };
+async function notifyItemFound(item) {
+  if (item.type !== 'found') return null;
+  return notifyUser({
+    user: item.createdBy,
+    type: 'system',
+    title: 'Found item registered',
+    message: `“${item.title}” is currently hidden from the public feed. Hand it over to the guard room to make it visible and claimable.`,
+    link: `/items/${item._id}`,
+    items: [item._id],
+  });
+}
+
+async function notifyDropOffReminder(item) {
+  return notifyUser({
+    user: item.createdBy,
+    type: 'system',
+    title: 'Found item awaiting drop-off',
+    message: `“${item.title}” still hasn\u2019t been handed over to the guard room. Please drop it off so the owner can claim it — it won\u2019t show publicly until then.`,
+    link: `/items/${item._id}`,
+    items: [item._id],
+  });
+}
+
+async function notifyItemInVault(item) {
+  return notifyUser({
+    user: item.createdBy,
+    type: 'system',
+    title: 'Item now in guard room',
+    message: `“${item.title}” was handed over to the guard room and is now visible in the public feed.`,
+    link: `/items/${item._id}`,
+    items: [item._id],
+  });
+}
+
+module.exports = { notifyUser, notifyClaimUpdate, sendEmail, notifyItemFound, notifyDropOffReminder, notifyItemInVault };

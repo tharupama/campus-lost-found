@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ShieldCheck, HandCoins, Archive, ScanLine, Check, X, QrCode, KeyRound, Loader2 } from 'lucide-react';
+import { ShieldCheck, HandCoins, Archive, ScanLine, Check, X, QrCode, KeyRound, Loader2, PackageCheck, PackageX } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
 import { QRCodeSVG } from 'qrcode.react';
@@ -28,6 +28,9 @@ export default function AdminPage() {
   const [qrItem, setQrItem] = useState(null);
   const [scanCode, setScanCode] = useState('');
   const [verifying, setVerifying] = useState(false);
+
+  const pendingDropOffs = vault.filter((i) => i.type === 'found' && i.handoverStatus !== 'in_vault');
+  const vaultItems = vault.filter((i) => !pendingDropOffs.includes(i));
 
   const refreshPendingCount = async () => {
     try {
@@ -110,6 +113,26 @@ export default function AdminPage() {
       return false;
     } finally {
       setVerifying(false);
+    }
+  }
+
+  async function markAvailable(item) {
+    const confirmed = await Swal.fire({
+      icon: 'question',
+      title: 'Mark item as available?',
+      text: `Confirm "${item.title}" is now stored in the guard room. This makes it visible in the public feed.`,
+      showCancelButton: true,
+      confirmButtonText: 'Yes, mark available',
+      confirmButtonColor: '#4f46e5',
+      cancelButtonColor: '#64748b',
+    });
+    if (!confirmed.isConfirmed) return;
+    try {
+      const { message } = await adminService.markItemAvailable(item._id);
+      toast.success(message);
+      await loadVault();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Could not mark item as available');
     }
   }
 
@@ -207,14 +230,54 @@ export default function AdminPage() {
 
       {tab === 'vault' && (
         <div>
-          <p className="mb-3 text-sm text-slate-400">{vault.length} items currently stored · QR unlocks on approved claim</p>
+          <p className="mb-3 text-sm text-slate-400">{vault.length} reported items · in-vault items are live in the public feed · QR unlocks on approved claim</p>
           {loading ? (
             <Spinner />
           ) : vault.length === 0 ? (
             <Empty text="Vault is empty" />
           ) : (
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-              {vault.map((item) => {
+            <>
+              {pendingDropOffs.length > 0 && (
+                <div className="mb-6">
+                  <div className="mb-2 flex items-center gap-2">
+                    <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-100 text-amber-600">
+                      <PackageX size={15} />
+                    </span>
+                    <h2 className="text-sm font-extrabold text-midnight">
+                      Awaiting drop-off · {pendingDropOffs.length}
+                    </h2>
+                    <span className="text-[11px] text-slate-400">hidden from public feed until verified</span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+                    {pendingDropOffs.map((item) => (
+                      <div key={item._id} className="overflow-hidden rounded-2xl border border-amber-200 bg-white shadow-card">
+                        <div className="relative aspect-[4/3]">
+                          <img src={item.image} alt={item.title} className="h-full w-full object-cover" />
+                          <div className="absolute left-2 top-2 flex gap-1">
+                            <Badge color="found">found</Badge>
+                            <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-700">
+                              pending
+                            </span>
+                          </div>
+                        </div>
+                        <div className="p-3">
+                          <p className="truncate text-sm font-bold text-midnight">{item.title}</p>
+                          <p className="mb-2 line-clamp-1 text-xs text-slate-400">
+                            {item.category} · {item.location}
+                            {item.createdBy && <span className="block truncate text-slate-400">held by {item.createdBy.name}</span>}
+                          </p>
+                          <button onClick={() => markAvailable(item)} className="btn-primary w-full !px-2 !py-2 text-xs">
+                            <PackageCheck size={14} /> Mark available in guard room
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+                {vaultItems.map((item) => {
                 const claim = claimForItem(item._id);
                 const hasClaim = Boolean(claim);
                 return (
@@ -253,7 +316,8 @@ export default function AdminPage() {
                   </div>
                 );
               })}
-            </div>
+              </div>
+            </>
           )}
         </div>
       )}

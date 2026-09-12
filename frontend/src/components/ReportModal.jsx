@@ -75,7 +75,11 @@ export default function ReportModal({ open, onClose, type, prefill = {} }) {
       Object.entries(form).forEach(([k, v]) => fd.append(k, v));
       if (image) fd.append('image', image);
       const { matchCount } = await itemService.createItem(fd);
-      toast.success(type === 'lost' ? 'Report posted — keep an eye on alerts' : 'Found item registered');
+      toast.success(
+        type === 'lost'
+          ? 'Report posted — keep an eye on alerts'
+          : 'Found item registered — drop it off at the guard room to make it live'
+      );
       if (matchCount > 0) {
         await Swal.fire({
           icon: 'success',
@@ -185,6 +189,13 @@ export default function ReportModal({ open, onClose, type, prefill = {} }) {
           Reporting as <span className="font-semibold text-slate-600">{user?.name}</span> ·{' '}
           {user?.email}
         </p>
+
+        {type === 'found' && (
+          <div className="rounded-xl border border-brand-100 bg-brand-50 p-3 text-xs leading-relaxed text-brand-700">
+            Your find stays <span className="font-semibold">hidden from the public feed</span> until you hand
+            it over to the guard room. You'll get reminder notifications until the item is dropped off.
+          </div>
+        )}
 
         <button type="submit" disabled={submitting} className="btn-primary w-full">
           {submitting ? <Loader2 className="animate-spin" size={18} /> : <span>Submit Report</span>}
