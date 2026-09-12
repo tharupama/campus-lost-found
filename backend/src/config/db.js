@@ -15,7 +15,7 @@ if (!cached) {
 async function connectDB() {
   if (cached.conn) return cached.conn;
   if (!cached.promise) {
-    cached.promise = mongoose.connect(MONGO_URI);
+    cached.promise = mongoose.connect(MONGO_URI, { serverSelectionTimeoutMS: 8000 });
   }
   try {
     cached.conn = await cached.promise;

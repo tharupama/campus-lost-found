@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
 const mongoose = require('mongoose');
+const connectDB = require('./config/db');
 const routes = require('./routes');
 const { notFound, errorHandler } = require('./middleware/error.middleware');
 
@@ -21,13 +22,23 @@ app.get('/', (req, res) => {
   });
 });
 
-app.get('/api/health', (req, res) => {
+app.get('/api/health', async (req, res) => {
   const states = ['disconnected', 'connected', 'connecting', 'disconnecting'];
+  let db = 'disconnected';
+  let dbError = null;
+  try {
+    await connectDB();
+    db = states[mongoose.connection.readyState] || 'unknown';
+  } catch (err) {
+    db = 'error';
+    dbError = err.message;
+  }
   res.status(200).json({
     status: 'ok',
     service: 'campus-lost-found-api',
-    db: states[mongoose.connection.readyState] || 'unknown',
     hasMongoUri: Boolean(process.env.MONGO_URI),
+    db,
+    dbError,
   });
 });
 
