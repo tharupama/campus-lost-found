@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { ShieldCheck, HandCoins, Archive, ScanLine, Check, X, QrCode, KeyRound, Loader2, PackageCheck, PackageX, Users, Pencil, Trash2, Search } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
+import { ShieldCheck, HandCoins, Archive, ScanLine, Check, X, QrCode, KeyRound, Loader2, PackageCheck, PackageX, Users, Pencil, Trash2, Search, Package } from 'lucide-react';
+import { format, formatDistanceToNow } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
 import { QRCodeSVG } from 'qrcode.react';
 import toast from 'react-hot-toast';
@@ -12,6 +12,7 @@ import { Field } from '../components/ui/Field';
 import QrScanner from '../components/ui/QrScanner';
 import { adminService } from '../services';
 import { useAuth } from '../contexts/AuthContext';
+import { CATEGORIES, BUILDINGS } from '../config/constants';
 
 const TABS = [
   { key: 'claims', icon: HandCoins, label: 'Claims' },
@@ -46,6 +47,12 @@ export default function AdminPage() {
   const [editId, setEditId] = useState(null);
   const [editForm, setEditForm] = useState({ name: '', email: '', role: '', mobileNumber: '', address: '', password: '' });
   const [savingUser, setSavingUser] = useState(false);
+  const [items, setItems] = useState([]);
+  const [itemsLoading, setItemsLoading] = useState(false);
+  const [itemSearch, setItemSearch] = useState('');
+  const [editingItem, setEditingItem] = useState(null);
+  const [itemForm, setItemForm] = useState({});
+  const [savingItem, setSavingItem] = useState(false);
 
   const pendingDropOffs = vault.filter((i) => i.type === 'found' && i.handoverStatus !== 'in_vault');
   const vaultItems = vault.filter((i) => !pendingDropOffs.includes(i));
@@ -110,6 +117,86 @@ export default function AdminPage() {
     if (section === 'users' && isAdmin) loadUsers();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [section, isAdmin]);
+
+  const loadItems = async (search = itemSearch) => {
+    setItemsLoading(true);
+    try {
+      const data = await adminService.getItems(search);
+      setItems(data.items);
+    } catch {
+      toast.error('Could not load items');
+    } finally {
+      setItemsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (section === 'items' && isAdmin) loadItems();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [section, isAdmin]);
+
+  function openEditItem(item) {
+    setEditingItem(item);
+    setItemForm({
+      title: item.title || '',
+      description: item.description || '',
+      category: item.category || '',
+      location: item.location || '',
+      date: item.date ? item.date.slice(0, 10) : '',
+      type: item.type || 'lost',
+      status: item.status || 'active',
+      handoverStatus: item.handoverStatus || 'pending',
+      secretFeature: item.secretFeature || '',
+    });
+  }
+
+  async function saveItem(e) {
+    e.preventDefault();
+    if (!itemForm.title.trim() || !itemForm.category || !itemForm.location) {
+      return toast.error('Title, category and location are required');
+    }
+    setSavingItem(true);
+    try {
+      const { message } = await adminService.updateItem(editingItem._id, {
+        title: itemForm.title.trim(),
+        description: itemForm.description.trim(),
+        category: itemForm.category,
+        location: itemForm.location,
+        date: itemForm.date,
+        type: itemForm.type,
+        status: itemForm.status,
+        handoverStatus: itemForm.type === 'found' ? itemForm.handoverStatus : undefined,
+        secretFeature: itemForm.type === 'found' ? itemForm.secretFeature.trim() : undefined,
+      });
+      toast.success(message || 'Item updated');
+      setEditingItem(null);
+      await loadItems();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Could not update item');
+    } finally {
+      setSavingItem(false);
+    }
+  }
+
+  async function removeItem(item) {
+    const confirmed = await Swal.fire({
+      icon: 'warning',
+      title: 'Delete item?',
+      text: `This permanently deletes "${item.title}" along with its claims and notifications.`,
+      showCancelButton: true,
+      confirmButtonText: 'Yes, delete',
+      confirmButtonColor: '#e11d48',
+      cancelButtonColor: '#64748b',
+    });
+    if (!confirmed.isConfirmed) return;
+    try {
+      const { message } = await adminService.deleteItem(item._id);
+      toast.success(message || 'Item deleted');
+      await loadItems();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Could not delete item');
+    }
+  }
 
   const filteredUsers = allUsers.filter(
     (u) =>
@@ -277,6 +364,14 @@ export default function AdminPage() {
         />
         {isAdmin && (
           <SideBtn
+            active={section === 'items'}
+            onClick={() => setSection('items')}
+            icon={Package}
+            label="Item Management"
+          />
+        )}
+        {isAdmin && (
+          <SideBtn
             active={section === 'users'}
             onClick={() => setSection('users')}
             icon={Users}
@@ -290,6 +385,7 @@ export default function AdminPage() {
         <div className="mb-5 flex gap-2 rounded-2xl bg-white p-1.5 shadow-card dark:bg-slate-900 md:hidden">
           {[
             { key: 'security', icon: ShieldCheck, label: 'Security' },
+            ...(isAdmin ? [{ key: 'items', icon: Package, label: 'Items' }] : []),
             ...(isAdmin ? [{ key: 'users', icon: Users, label: 'Users' }] : []),
           ].map((t) => (
             <button
@@ -536,6 +632,83 @@ export default function AdminPage() {
       )}
 
       </>
+        ) : section === 'items' ? (
+          <>
+            <div className="mb-5 flex items-center gap-3">
+              <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500 to-brand-600 text-white shadow-glow">
+                <Package size={20} />
+              </span>
+              <div>
+                <h1 className="text-xl font-extrabold text-midnight dark:text-white">Item Management</h1>
+                <p className="text-sm text-slate-400 dark:text-slate-500">Edit details · secret marks · delete items</p>
+              </div>
+            </div>
+
+            <div className="relative mb-4">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+              <input
+                className="input-field pl-10"
+                placeholder="Search by title, category, location…"
+                value={itemSearch}
+                onChange={(e) => setItemSearch(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && loadItems()}
+              />
+            </div>
+
+            {itemsLoading ? (
+              <Spinner />
+            ) : items.length === 0 ? (
+              <Empty text="No items match" />
+            ) : (
+              <div className="grid gap-3 sm:grid-cols-2">
+                {items.map((item) => (
+                  <div key={item._id} className="overflow-hidden rounded-2xl bg-white shadow-card dark:bg-slate-900">
+                    <div className="relative aspect-[16/9]">
+                      {item.image ? (
+                        <img src={item.image} alt={item.title} className="h-full w-full object-cover" />
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-brand-100 to-violet-100 dark:from-brand-500/20 dark:to-violet-500/20">
+                          <Package className="text-brand-300" size={32} />
+                        </div>
+                      )}
+                      <div className="absolute left-2 top-2 flex gap-1">
+                        <Badge color={item.type}>{item.type}</Badge>
+                        <Badge color={item.status}>{item.status}</Badge>
+                      </div>
+                      {item.type === 'found' && (
+                        <span className="absolute right-2 top-2 rounded-full bg-white/90 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-slate-600 dark:bg-slate-900/90 dark:text-slate-300">
+                          {item.handoverStatus === 'in_vault' ? 'in guard room' : 'awaiting drop-off'}
+                        </span>
+                      )}
+                    </div>
+                    <div className="p-4">
+                      <p className="truncate text-sm font-bold text-midnight dark:text-white">{item.title}</p>
+                      <p className="truncate text-xs text-slate-400 dark:text-slate-500">{item.category} · {item.location} · {format(new Date(item.date), 'PP')}</p>
+                      <p className="mt-1 truncate text-[11px] text-slate-400 dark:text-slate-500">
+                        by {item.createdBy?.name || 'unknown'} · {formatDistanceToNow(new Date(item.createdAt), { addSuffix: true })}
+                      </p>
+                      {item.type === 'found' && (
+                        <p className="mt-2 rounded-lg bg-slate-50 p-2 text-[11px] leading-relaxed text-slate-500 dark:bg-slate-800 dark:text-slate-400">
+                          <span className="font-semibold">Secret mark:</span> {item.secretFeature || '—'}
+                        </p>
+                      )}
+                      <div className="mt-3 flex gap-2">
+                        <button onClick={() => openEditItem(item)} className="btn-ghost flex-1 !px-2 !py-2 text-xs">
+                          <Pencil size={14} /> Edit
+                        </button>
+                        <button
+                          onClick={() => removeItem(item)}
+                          className="btn-ghost flex-1 border-rose-200 !text-rose-500 hover:bg-rose-50 dark:border-rose-500/30 dark:hover:bg-rose-500/10"
+                        >
+                          <Trash2 size={14} /> Delete
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
         ) : (
           <>
             <div className="mb-5 flex items-center gap-3">
@@ -656,6 +829,72 @@ export default function AdminPage() {
             <button type="button" className="btn-ghost flex-1" onClick={() => setEditId(null)}>Cancel</button>
             <button type="submit" disabled={savingUser} className="btn-primary flex-1">
               {savingUser ? <Loader2 className="animate-spin" size={16} /> : <Check size={16} />} Save
+            </button>
+          </div>
+        </form>
+      </Modal>
+
+      <Modal open={Boolean(editingItem)} onClose={() => setEditingItem(null)} title="Edit item">
+        <form onSubmit={saveItem} className="space-y-4">
+          <Field label="Item name">
+            <input className="input-field" value={itemForm.title} onChange={(e) => setItemForm({ ...itemForm, title: e.target.value })} required />
+          </Field>
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Category">
+              <select className="input-field" value={itemForm.category} onChange={(e) => setItemForm({ ...itemForm, category: e.target.value })} required>
+                {CATEGORIES.map((c) => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+            </Field>
+            <Field label="Building">
+              <select className="input-field" value={itemForm.location} onChange={(e) => setItemForm({ ...itemForm, location: e.target.value })} required>
+                {BUILDINGS.map((b) => (
+                  <option key={b} value={b}>{b}</option>
+                ))}
+              </select>
+            </Field>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Date">
+              <input type="date" className="input-field" value={itemForm.date} onChange={(e) => setItemForm({ ...itemForm, date: e.target.value })} />
+            </Field>
+            <Field label="Type">
+              <select className="input-field" value={itemForm.type} onChange={(e) => setItemForm({ ...itemForm, type: e.target.value })}>
+                <option value="lost">Lost</option>
+                <option value="found">Found</option>
+              </select>
+            </Field>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Status">
+              <select className="input-field" value={itemForm.status} onChange={(e) => setItemForm({ ...itemForm, status: e.target.value })}>
+                {['active', 'claimed', 'resolved'].map((s) => (
+                  <option key={s} value={s}>{s}</option>
+                ))}
+              </select>
+            </Field>
+            {itemForm.type === 'found' && (
+              <Field label="Guard room">
+                <select className="input-field" value={itemForm.handoverStatus} onChange={(e) => setItemForm({ ...itemForm, handoverStatus: e.target.value })}>
+                  <option value="pending">Awaiting drop-off</option>
+                  <option value="in_vault">In guard room</option>
+                </select>
+              </Field>
+            )}
+          </div>
+          <Field label="Description">
+            <textarea className="input-field min-h-24 resize-none" value={itemForm.description} onChange={(e) => setItemForm({ ...itemForm, description: e.target.value })} />
+          </Field>
+          {itemForm.type === 'found' && (
+            <Field label="Secret Mark" hint="Visible to admins & security only — used to verify claims">
+              <textarea className="input-field min-h-20 resize-none" value={itemForm.secretFeature} onChange={(e) => setItemForm({ ...itemForm, secretFeature: e.target.value })} />
+            </Field>
+          )}
+          <div className="flex gap-3">
+            <button type="button" className="btn-ghost flex-1" onClick={() => setEditingItem(null)}>Cancel</button>
+            <button type="submit" disabled={savingItem} className="btn-primary flex-1">
+              {savingItem ? <Loader2 className="animate-spin" size={16} /> : <Check size={16} />} Save
             </button>
           </div>
         </form>

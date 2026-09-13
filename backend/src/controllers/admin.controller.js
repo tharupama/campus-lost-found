@@ -1,9 +1,12 @@
 const Claim = require('../models/Claim.model');
 const Item = require('../models/Item.model');
 const User = require('../models/User.model');
+const Notification = require('../models/Notification.model');
 const { notifyClaimUpdate, notifyItemInVault } = require('../services/notification.service');
 
 const ROLES = ['student', 'guard', 'admin', 'user'];
+const ITEM_STATUSES = ['active', 'claimed', 'resolved'];
+const HANDOVER_STATUSES = ['pending', 'in_vault'];
 
 exports.getUsers = async (req, res, next) => {
   try {
@@ -92,6 +95,75 @@ exports.deleteUser = async (req, res, next) => {
 
     await user.deleteOne();
     res.status(200).json({ message: 'User deleted' });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.getAllItems = async (req, res, next) => {
+  try {
+    const { search, type, status } = req.query;
+    const filter = {};
+
+    if (search) {
+      const re = { $regex: String(search), $options: 'i' };
+      filter.$or = [{ title: re }, { category: re }, { location: re }, { description: re }];
+    }
+    if (type) filter.type = type;
+    if (status) filter.status = status;
+
+    const items = await Item.find(filter)
+      .select('+secretFeature')
+      .populate('createdBy', 'name email')
+      .populate('claimedBy', 'name email avatar')
+      .sort({ createdAt: -1 })
+      .limit(Number(req.query.limit) || 200);
+
+    res.status(200).json({ items, total: items.length });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.updateItem = async (req, res, next) => {
+  try {
+    const item = await Item.findById(req.params.id);
+    if (!item) return res.status(404).json({ message: 'Item not found' });
+
+    const { title, description, category, location, date, type, status, handoverStatus, secretFeature } = req.body;
+
+    if (title !== undefined) item.title = String(title).trim();
+    if (description !== undefined) item.description = String(description).trim();
+    if (category !== undefined) item.category = String(category).trim();
+    if (location !== undefined) item.location = String(location).trim();
+    if (date !== undefined) item.date = new Date(date);
+    if (type !== undefined && ['lost', 'found'].includes(type)) item.type = type;
+    if (status !== undefined && ITEM_STATUSES.includes(status)) item.status = status;
+    if (handoverStatus !== undefined && HANDOVER_STATUSES.includes(handoverStatus)) {
+      item.handoverStatus = handoverStatus;
+      if (handoverStatus === 'in_vault') {
+        item.handedOverAt = item.handedOverAt || new Date();
+      }
+    }
+    if (type === 'found' || secretFeature !== undefined) item.secretFeature = String(secretFeature || '').trim();
+
+    await item.save();
+    res.status(200).json({ item, message: 'Item updated' });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.deleteItem = async (req, res, next) => {
+  try {
+    const item = await Item.findById(req.params.id);
+    if (!item) return res.status(404).json({ message: 'Item not found' });
+
+    await Claim.deleteMany({ item: item._id });
+    await Notification.deleteMany({ items: item._id });
+    await item.deleteOne();
+
+    res.status(200).json({ message: 'Item deleted' });
   } catch (err) {
     next(err);
   }

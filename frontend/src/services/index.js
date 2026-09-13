@@ -89,6 +89,18 @@ export const adminService = {
     const { data } = await api.get('/admin/vault');
     return data;
   },
+  async getItems(search = '') {
+    const { data } = await api.get('/admin/items', { params: search ? { search } : {} });
+    return data;
+  },
+  async updateItem(id, payload) {
+    const { data } = await api.put(`/admin/items/${id}`, payload);
+    return data;
+  },
+  async deleteItem(id) {
+    const { data } = await api.delete(`/admin/items/${id}`);
+    return data;
+  },
   async markItemAvailable(id) {
     const { data } = await api.patch(`/admin/items/${id}/available`);
     return data;
