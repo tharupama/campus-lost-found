@@ -1,13 +1,42 @@
 import { useNavigate } from 'react-router-dom';
 import { Bell, BellRing, Mail } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import Swal from 'sweetalert2';
 import Spinner from '../components/ui/Spinner';
 import Badge from '../components/ui/Badge';
 import { useNotifications } from '../contexts/NotificationContext';
+import { itemService } from '../services';
 
 export default function NotificationsPage() {
   const { notifications, unread, markAllRead } = useNotifications();
   const navigate = useNavigate();
+
+  async function handleClick(n) {
+    if (!n.link) return;
+    if (n.type === 'match') {
+      const m = n.link.match(/\/items\/(.+)$/);
+      if (m) {
+        try {
+          const { item } = await itemService.getItem(m[1]);
+          if (item.type === 'found' && item.handoverStatus !== 'in_vault') {
+            const result = await Swal.fire({
+              icon: 'question',
+              title: 'Not in the guard room yet',
+              html: `“${item.title}” hasn't been handed over to the guard room yet.<br/>You can still view it, but it will only be available for pickup after the finder drops it off.`,
+              showCancelButton: true,
+              confirmButtonText: 'View anyway',
+              confirmButtonColor: '#4f46e5',
+              cancelButtonText: 'Close',
+            });
+            if (!result.isConfirmed) return;
+          }
+        } catch {
+          // fall through to navigation
+        }
+      }
+    }
+    navigate(n.link);
+  }
 
   if (!notifications.length) return <Spinner full />;
 
@@ -39,7 +68,7 @@ export default function NotificationsPage() {
         {notifications.map((n) => (
           <button
             key={n._id}
-            onClick={() => n.link && navigate(n.link)}
+            onClick={() => handleClick(n)}
             className={`flex w-full items-start gap-3 rounded-2xl p-4 text-left shadow-card transition hover:shadow-glow ${
               n.read ? 'bg-white dark:bg-slate-900' : 'bg-brand-50 ring-1 ring-brand-200 dark:bg-brand-500/10 dark:ring-brand-500/30'
             }`}

@@ -56,7 +56,7 @@ async function runMatchEngine(foundItem) {
         user: lostItem.createdBy,
         type: 'match',
         title: 'Potential match spotted!',
-        message: `Your lost "${lostItem.title}" might be the just-found "${foundItem.title}" (match score ${score}/100).`,
+        message: `Your lost "${lostItem.title}" might be the just-found "${foundItem.title}" (match score ${score}/100). The item isn't in the guard room yet — it will be available for pickup once the finder drops it off.`,
         items: [lostItem._id, foundItem._id],
         link: `/items/${foundItem._id}`,
       });

@@ -8,7 +8,7 @@ export default function AppShell() {
   const [report, setReport] = useState(false);
   const [reportType, setReportType] = useState('lost');
 
-  function openReport(type = 'lost') {
+  function openReport(type = 'select') {
     setReportType(type);
     setReport(true);
   }

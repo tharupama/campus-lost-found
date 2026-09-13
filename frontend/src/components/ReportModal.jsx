@@ -1,5 +1,5 @@
-import { useRef, useState } from 'react';
-import { ImagePlus, Loader2, Eye, EyeOff } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { ImagePlus, Loader2, Eye, EyeOff, PackageSearch, HandCoins } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Modal from '../components/ui/Modal';
 import { Field } from '../components/ui/Field';
@@ -8,8 +8,9 @@ import { itemService } from '../services';
 import { useAuth } from '../contexts/AuthContext';
 import Swal from 'sweetalert2';
 
-export default function ReportModal({ open, onClose, type, prefill = {} }) {
+export default function ReportModal({ open, onClose, type: initialType, prefill = {} }) {
   const { user } = useAuth();
+  const [currentType, setCurrentType] = useState(initialType);
   const [form, setForm] = useState({
     title: '',
     category: '',
@@ -24,6 +25,21 @@ export default function ReportModal({ open, onClose, type, prefill = {} }) {
   const [showSecret, setShowSecret] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const fileRef = useRef(null);
+
+  useEffect(() => {
+    if (!open) return;
+    setCurrentType(initialType);
+    if (initialType === 'select') {
+      reset();
+    }
+  }, [open]);
+
+  function pickType(t) {
+    setCurrentType(t);
+    reset();
+  }
+
+  const type = currentType;
 
   const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
 
@@ -98,7 +114,12 @@ export default function ReportModal({ open, onClose, type, prefill = {} }) {
   }
 
   return (
-    <Modal open={open} onClose={() => { reset(); onClose(); }} title={type === 'lost' ? 'Report a Lost Item' : 'Report a Found Item'}>
+    <Modal
+      open={open}
+      onClose={() => { reset(); onClose(); }}
+      title={type === 'lost' ? 'Report a Lost Item' : type === 'found' ? 'Report a Found Item' : 'Report an Item'}
+    >
+      {type !== 'select' ? (
       <form onSubmit={handleSubmit} className="space-y-4">
         <Field label="Item photo" hint="Compressed automatically. Cloudinary when configured, else stored locally.">
           <div className="flex items-center gap-4">
@@ -201,6 +222,43 @@ export default function ReportModal({ open, onClose, type, prefill = {} }) {
           {submitting ? <Loader2 className="animate-spin" size={18} /> : <span>Submit Report</span>}
         </button>
       </form>
+      ) : (
+        <div className="space-y-3">
+          <p className="text-sm text-slate-500 dark:text-slate-400">
+            What would you like to report?
+          </p>
+          <button
+            type="button"
+            onClick={() => pickType('lost')}
+            className="flex w-full items-center gap-4 rounded-2xl border-2 border-slate-200 bg-white p-4 text-left transition hover:border-brand-400 hover:bg-brand-50 dark:border-slate-700 dark:bg-slate-800 dark:hover:border-brand-500 dark:hover:bg-brand-500/10"
+          >
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-100 text-brand-600 dark:bg-brand-500/15 dark:text-brand-400">
+              <PackageSearch size={22} />
+            </span>
+            <span>
+              <span className="block font-semibold text-slate-800 dark:text-slate-100">I lost an item</span>
+              <span className="block text-xs text-slate-400 dark:text-slate-500">
+                Post what you lost to get matched with finds
+              </span>
+            </span>
+          </button>
+          <button
+            type="button"
+            onClick={() => pickType('found')}
+            className="flex w-full items-center gap-4 rounded-2xl border-2 border-slate-200 bg-white p-4 text-left transition hover:border-violet-400 hover:bg-violet-50 dark:border-slate-700 dark:bg-slate-800 dark:hover:border-violet-500 dark:hover:bg-violet-500/10"
+          >
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-violet-100 text-violet-600 dark:bg-violet-500/15 dark:text-violet-400">
+              <HandCoins size={22} />
+            </span>
+            <span>
+              <span className="block font-semibold text-slate-800 dark:text-slate-100">I found an item</span>
+              <span className="block text-xs text-slate-400 dark:text-slate-500">
+                Register a find and return it at the guard room
+              </span>
+            </span>
+          </button>
+        </div>
+      )}
     </Modal>
   );
 }

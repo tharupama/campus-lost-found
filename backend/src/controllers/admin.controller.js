@@ -103,7 +103,7 @@ exports.getClaims = async (req, res, next) => {
     if (req.query.status) filter.status = req.query.status;
 
     const claims = await Claim.find(filter)
-      .populate('item', 'title category location image type status createdBy date')
+      .populate('item', 'title category location image type status createdBy date +secretFeature')
       .populate('claimant', 'name email avatar')
       .populate('reviewedBy', 'name')
       .sort({ createdAt: -1 });
