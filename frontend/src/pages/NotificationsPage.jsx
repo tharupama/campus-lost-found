@@ -4,11 +4,12 @@ import { formatDistanceToNow } from 'date-fns';
 import Swal from 'sweetalert2';
 import Spinner from '../components/ui/Spinner';
 import Badge from '../components/ui/Badge';
+import Pagination from '../components/ui/Pagination';
 import { useNotifications } from '../contexts/NotificationContext';
 import { itemService } from '../services';
 
 export default function NotificationsPage() {
-  const { notifications, unread, markAllRead } = useNotifications();
+  const { notifications, unread, markAllRead, total, totalPages, page, pageSize, setPage, setPageSize } = useNotifications();
   const navigate = useNavigate();
 
   async function handleClick(n) {
@@ -89,6 +90,15 @@ export default function NotificationsPage() {
           </button>
         ))}
       </div>
+
+      <Pagination
+        page={page}
+        pageSize={pageSize}
+        total={total}
+        totalPages={totalPages}
+        onChangePage={setPage}
+        onPageSizeChange={(s) => { setPageSize(s); setPage(1); }}
+      />
     </div>
   );
 }

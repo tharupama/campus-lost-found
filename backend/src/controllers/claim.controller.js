@@ -1,11 +1,16 @@
 const Claim = require('../models/Claim.model');
 const Item = require('../models/Item.model');
+const { parsePagination, pageMeta } = require('../utils/pagination');
 
 exports.createClaim = async (req, res, next) => {
   try {
-    const { itemId, proofAnswer, note } = req.body;
+    const { itemId, proofAnswer, note, contactNumber } = req.body;
     if (!itemId || !proofAnswer) {
       return res.status(400).json({ message: 'Item and proof answer are required' });
+    }
+    const phone = String(contactNumber || '').trim();
+    if (!phone) {
+      return res.status(400).json({ message: 'A contact number is required so security can reach you about pickup' });
     }
 
     const item = await Item.findById(itemId);
@@ -25,6 +30,7 @@ exports.createClaim = async (req, res, next) => {
     const claim = await Claim.create({
       item: itemId,
       claimant: req.user._id,
+      contactNumber: phone,
       proofAnswer,
       note,
     });
@@ -37,10 +43,15 @@ exports.createClaim = async (req, res, next) => {
 
 exports.getMyClaims = async (req, res, next) => {
   try {
-    const claims = await Claim.find({ claimant: req.user._id })
+    const { page, pageSize, skip, limit } = parsePagination(req.query, 10, 100);
+    const filter = { claimant: req.user._id };
+    const claims = await Claim.find(filter)
       .populate('item', 'title category location image type status createdBy')
-      .sort({ createdAt: -1 });
-    res.status(200).json({ claims });
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+    const total = await Claim.countDocuments(filter);
+    res.status(200).json({ claims, total, ...pageMeta(total, page, pageSize) });
   } catch (err) {
     next(err);
   }

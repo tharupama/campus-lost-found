@@ -2,6 +2,7 @@ const Item = require('../models/Item.model');
 const { runMatchEngine } = require('../services/matchEngine.service');
 const { processImage } = require('../services/upload.service');
 const { notifyItemFound } = require('../services/notification.service');
+const { parsePagination, pageMeta } = require('../utils/pagination');
 
 const FOUND_ITEM_EXPIRY_DAYS = 90;
 
@@ -30,12 +31,16 @@ exports.getItems = async (req, res, next) => {
       });
     }
 
+    const { page, pageSize, skip, limit } = parsePagination(req.query, 12, 60);
+
     const items = await Item.find(filter)
       .populate('createdBy', 'name email avatar')
       .sort({ createdAt: -1 })
-      .limit(Math.min(Number(req.query.limit) || 60, 120));
+      .skip(skip)
+      .limit(limit);
 
-    res.status(200).json({ items, total: items.length });
+    const total = await Item.countDocuments(filter);
+    res.status(200).json({ items, total, ...pageMeta(total, page, pageSize) });
   } catch (err) {
     next(err);
   }
@@ -62,8 +67,10 @@ exports.getMyItems = async (req, res, next) => {
     const { type } = req.query;
     const filter = { createdBy: req.user._id };
     if (type) filter.type = type;
-    const items = await Item.find(filter).sort({ createdAt: -1 }).limit(100);
-    res.status(200).json({ items });
+    const { page, pageSize, skip, limit } = parsePagination(req.query, 12, 100);
+    const items = await Item.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit);
+    const total = await Item.countDocuments(filter);
+    res.status(200).json({ items, total, ...pageMeta(total, page, pageSize) });
   } catch (err) {
     next(err);
   }

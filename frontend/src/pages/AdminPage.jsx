@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { ShieldCheck, HandCoins, Archive, ScanLine, Check, X, QrCode, KeyRound, Loader2, PackageCheck, PackageX, Users, Pencil, Trash2, Search, Package } from 'lucide-react';
+import { useDebouncedCallback } from 'use-debounce';
+import { ShieldCheck, HandCoins, Archive, ScanLine, Check, X, QrCode, KeyRound, Loader2, PackageCheck, PackageX, Users, Pencil, Trash2, Search, Package, Phone } from 'lucide-react';
 import { format, formatDistanceToNow } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
 import { QRCodeSVG } from 'qrcode.react';
@@ -8,6 +9,7 @@ import Swal from 'sweetalert2';
 import Spinner from '../components/ui/Spinner';
 import Modal from '../components/ui/Modal';
 import Badge from '../components/ui/Badge';
+import Pagination from '../components/ui/Pagination';
 import { Field } from '../components/ui/Field';
 import QrScanner from '../components/ui/QrScanner';
 import { adminService } from '../services';
@@ -54,23 +56,45 @@ export default function AdminPage() {
   const [itemForm, setItemForm] = useState({});
   const [savingItem, setSavingItem] = useState(false);
 
+  const [claimsPage, setClaimsPage] = useState(1);
+  const [claimsPageSize, setClaimsPageSize] = useState(10);
+  const [claimsTotal, setClaimsTotal] = useState(0);
+  const [claimsTotalPages, setClaimsTotalPages] = useState(1);
+
+  const [vaultPage, setVaultPage] = useState(1);
+  const [vaultPageSize, setVaultPageSize] = useState(12);
+  const [vaultTotal, setVaultTotal] = useState(0);
+  const [vaultTotalPages, setVaultTotalPages] = useState(1);
+
+  const [itemsPage, setItemsPage] = useState(1);
+  const [itemsPageSize, setItemsPageSize] = useState(12);
+  const [itemsTotal, setItemsTotal] = useState(0);
+  const [itemsTotalPages, setItemsTotalPages] = useState(1);
+
+  const [usersPage, setUsersPage] = useState(1);
+  const [usersPageSize, setUsersPageSize] = useState(10);
+  const [usersTotal, setUsersTotal] = useState(0);
+  const [usersTotalPages, setUsersTotalPages] = useState(1);
+
   const pendingDropOffs = vault.filter((i) => i.type === 'found' && i.handoverStatus !== 'in_vault');
   const vaultItems = vault.filter((i) => !pendingDropOffs.includes(i));
 
   const refreshPendingCount = async () => {
     try {
-      const data = await adminService.getClaims('pending');
-      setPendingCount(data.claims.length);
+      const data = await adminService.getClaims('pending', 1, 1);
+      setPendingCount(data.total);
     } catch {
       // silent
     }
   };
 
-  const loadClaims = async (status = filter) => {
+  const loadClaims = async (status = filter, p = claimsPage, s = claimsPageSize) => {
     setLoading(true);
     try {
-      const data = await adminService.getClaims(status);
+      const data = await adminService.getClaims(status, p, s);
       setClaims(data.claims);
+      setClaimsTotal(data.total || 0);
+      setClaimsTotalPages(data.totalPages || 1);
     } catch {
       toast.error('Could not load claims');
     } finally {
@@ -79,14 +103,16 @@ export default function AdminPage() {
     setTab('claims');
   };
 
-  const loadVault = async () => {
+  const loadVault = async (p = vaultPage, s = vaultPageSize) => {
     setLoading(true);
     try {
       const [vaultData, approvedData] = await Promise.all([
-        adminService.getVault(),
-        adminService.getClaims('approved'),
+        adminService.getVault(p, s),
+        adminService.getClaims('approved', 1, 100),
       ]);
       setVault(vaultData.items);
+      setVaultTotal(vaultData.total || 0);
+      setVaultTotalPages(vaultData.totalPages || 1);
       setApprovedClaims(approvedData.claims);
     } catch {
       toast.error('Could not load vault');
@@ -101,11 +127,13 @@ export default function AdminPage() {
     refreshPendingCount();
   }, []);
 
-  const loadUsers = async () => {
+  const loadUsers = async (p = usersPage, s = usersPageSize) => {
     setUsersLoading(true);
     try {
-      const data = await adminService.getUsers();
+      const data = await adminService.getUsers(userSearch, p, s);
       setAllUsers(data.users);
+      setUsersTotal(data.total || 0);
+      setUsersTotalPages(data.totalPages || 1);
     } catch {
       toast.error('Could not load users');
     } finally {
@@ -114,15 +142,22 @@ export default function AdminPage() {
   };
 
   useEffect(() => {
-    if (section === 'users' && isAdmin) loadUsers();
+    if (section === 'users' && isAdmin) loadUsers(usersPage, usersPageSize);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [section, isAdmin]);
+  }, [section, isAdmin, usersPage, usersPageSize]);
 
-  const loadItems = async (search = itemSearch) => {
+  const searchUsers = useDebouncedCallback(() => {
+    setUsersPage(1);
+    loadUsers(1, usersPageSize);
+  }, 350);
+
+  const loadItems = async (p = itemsPage, s = itemsPageSize) => {
     setItemsLoading(true);
     try {
-      const data = await adminService.getItems(search);
+      const data = await adminService.getItems(itemSearch, p, s);
       setItems(data.items);
+      setItemsTotal(data.total || 0);
+      setItemsTotalPages(data.totalPages || 1);
     } catch {
       toast.error('Could not load items');
     } finally {
@@ -131,9 +166,14 @@ export default function AdminPage() {
   };
 
   useEffect(() => {
-    if (section === 'items' && isAdmin) loadItems();
+    if (section === 'items' && isAdmin) loadItems(itemsPage, itemsPageSize);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [section, isAdmin]);
+  }, [section, isAdmin, itemsPage, itemsPageSize]);
+
+  const searchItems = useDebouncedCallback(() => {
+    setItemsPage(1);
+    loadItems(1, itemsPageSize);
+  }, 350);
 
   function openEditItem(item) {
     setEditingItem(item);
@@ -197,14 +237,6 @@ export default function AdminPage() {
       toast.error(err.response?.data?.message || 'Could not delete item');
     }
   }
-
-  const filteredUsers = allUsers.filter(
-    (u) =>
-      !userSearch.trim() ||
-      u.name?.toLowerCase().includes(userSearch.toLowerCase()) ||
-      u.email?.toLowerCase().includes(userSearch.toLowerCase()) ||
-      u.role?.toLowerCase().includes(userSearch.toLowerCase())
-  );
 
   function openEdit(u) {
     setEditId(u._id);
@@ -281,7 +313,7 @@ export default function AdminPage() {
       await adminService.reviewClaim(claim._id, status);
       toast.success(`Claim ${status}`);
       refreshPendingCount();
-      loadClaims(filter);
+      loadClaims(filter, claimsPage, claimsPageSize);
     } catch (err) {
       toast.error(err.response?.data?.message || 'Update failed');
     }
@@ -426,7 +458,7 @@ export default function AdminPage() {
                   key={t.key}
                   onClick={
                     t.key === 'vault'
-                      ? loadVault
+                      ? () => loadVault()
                       : t.key === 'scan'
                         ? () => setTab('scan')
                         : () => loadClaims()
@@ -452,7 +484,7 @@ export default function AdminPage() {
             {[['pending', 'Pending'], ['approved', 'Approved'], ['rejected', 'Rejected'], ['resolved', 'Resolved']].map(([key, label]) => (
               <button
                 key={key}
-                onClick={() => { setFilter(key); loadClaims(key); }}
+                onClick={() => { setFilter(key); setClaimsPage(1); loadClaims(key, 1, claimsPageSize); }}
                 className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-semibold capitalize transition ${
                   filter === key ? 'bg-brand-600 text-white' : 'bg-white text-slate-500 dark:bg-slate-900 dark:text-slate-400'
                 }`}
@@ -472,12 +504,20 @@ export default function AdminPage() {
               ))}
             </div>
           )}
+          <Pagination
+            page={claimsPage}
+            pageSize={claimsPageSize}
+            total={claimsTotal}
+            totalPages={claimsTotalPages}
+            onChangePage={(p) => { setClaimsPage(p); loadClaims(filter, p, claimsPageSize); }}
+            onPageSizeChange={(s) => { setClaimsPageSize(s); setClaimsPage(1); loadClaims(filter, 1, s); }}
+          />
         </div>
       )}
 
       {tab === 'vault' && (
         <div>
-          <p className="mb-3 text-sm text-slate-400 dark:text-slate-500">{vault.length} reported items · in-vault items are live in the public feed · QR unlocks on approved claim</p>
+          <p className="mb-3 text-sm text-slate-400 dark:text-slate-500">{vaultTotal} reported items · in-vault items are live in the public feed · QR unlocks on approved claim</p>
           {loading ? (
             <Spinner />
           ) : vault.length === 0 ? (
@@ -566,6 +606,14 @@ export default function AdminPage() {
               </div>
             </>
           )}
+          <Pagination
+            page={vaultPage}
+            pageSize={vaultPageSize}
+            total={vaultTotal}
+            totalPages={vaultTotalPages}
+            onChangePage={(p) => { setVaultPage(p); loadVault(p, vaultPageSize); }}
+            onPageSizeChange={(s) => { setVaultPageSize(s); setVaultPage(1); loadVault(1, s); }}
+          />
         </div>
       )}
 
@@ -650,8 +698,8 @@ export default function AdminPage() {
                 className="input-field pl-10"
                 placeholder="Search by title, category, location…"
                 value={itemSearch}
-                onChange={(e) => setItemSearch(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && loadItems()}
+                onChange={(e) => { setItemSearch(e.target.value); searchItems(); }}
+                onKeyDown={(e) => e.key === 'Enter' && loadItems(1, itemsPageSize)}
               />
             </div>
 
@@ -708,6 +756,14 @@ export default function AdminPage() {
                 ))}
               </div>
             )}
+            <Pagination
+              page={itemsPage}
+              pageSize={itemsPageSize}
+              total={itemsTotal}
+              totalPages={itemsTotalPages}
+              onChangePage={(p) => { setItemsPage(p); loadItems(p, itemsPageSize); }}
+              onPageSizeChange={(s) => { setItemsPageSize(s); setItemsPage(1); loadItems(1, s); }}
+            />
           </>
         ) : (
           <>
@@ -721,7 +777,7 @@ export default function AdminPage() {
               </div>
             </div>
             <p className="mb-3 text-sm text-slate-400 dark:text-slate-500">
-              {allUsers.length} accounts · only admins can view or manage users
+              {usersTotal} accounts · only admins can view or manage users
             </p>
 
           <div className="relative mb-4">
@@ -730,17 +786,18 @@ export default function AdminPage() {
               className="input-field pl-10"
               placeholder="Search by name, email or role…"
               value={userSearch}
-              onChange={(e) => setUserSearch(e.target.value)}
+              onChange={(e) => { setUserSearch(e.target.value); searchUsers(); }}
+              onKeyDown={(e) => e.key === 'Enter' && loadUsers(1, usersPageSize)}
             />
           </div>
 
           {usersLoading ? (
             <Spinner />
-          ) : filteredUsers.length === 0 ? (
+          ) : allUsers.length === 0 ? (
             <Empty text="No users match" />
           ) : (
             <div className="grid gap-3 sm:grid-cols-2">
-              {filteredUsers.map((u) => (
+              {allUsers.map((u) => (
                 <div key={u._id} className="flex items-center gap-3 rounded-2xl bg-white p-4 shadow-card dark:bg-slate-900">
                   <span className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-brand-100 to-violet-100 text-sm font-extrabold text-brand-600 dark:from-brand-500/20 dark:to-violet-500/20 dark:text-brand-300">
                     {u.avatar ? (
@@ -779,6 +836,14 @@ export default function AdminPage() {
               ))}
             </div>
           )}
+          <Pagination
+            page={usersPage}
+              pageSize={usersPageSize}
+              total={usersTotal}
+              totalPages={usersTotalPages}
+              onChangePage={(p) => { setUsersPage(p); loadUsers(p, usersPageSize); }}
+              onPageSizeChange={(s) => { setUsersPageSize(s); setUsersPage(1); loadUsers(1, s); }}
+            />
           </>
         )}
 
@@ -949,12 +1014,38 @@ function ClaimReviewCard({ claim, onApprove, onReject }) {
           {item?.image && <img src={item.image} alt={item.title} className="mb-2 h-20 w-full rounded-lg object-cover" />}
           <p className="text-sm font-bold text-midnight dark:text-white">{item?.title}</p>
           <p className="text-xs text-slate-400 dark:text-slate-500">{item?.category} · {item?.location}</p>
+          {item?.description && (
+            <p className="mt-1.5 line-clamp-2 rounded-lg bg-white p-2 text-[11px] leading-relaxed text-slate-600 dark:bg-slate-900 dark:text-slate-300">
+              {item.description}
+            </p>
+          )}
+          {item?.date && (
+            <p className="mt-1.5 text-[11px] text-slate-400 dark:text-slate-500">
+              {item.type === 'found' ? 'Found' : 'Lost'} · {format(new Date(item.date), 'PP')}
+            </p>
+          )}
+          {item?.type === 'found' && (
+            <p className={`mt-1 inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${item.handoverStatus === 'in_vault' ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400' : 'bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400'}`}>
+              {item.handoverStatus === 'in_vault' ? 'in guard room' : 'awaiting drop-off'}
+            </p>
+          )}
+          {item?.createdBy?.name && (
+            <p className="mt-1.5 truncate text-[11px] text-slate-400 dark:text-slate-500">
+              Held by <span className="font-semibold text-slate-600 dark:text-slate-300">{item.createdBy.name}</span>
+              {item.createdBy.mobileNumber ? ` · ${item.createdBy.mobileNumber}` : ''}
+            </p>
+          )}
         </div>
 
         <div className="rounded-xl bg-slate-50 p-3 dark:bg-slate-800">
           <p className="mb-2 text-[11px] font-bold uppercase tracking-wide text-slate-400 dark:text-slate-500">Claimant</p>
           <p className="text-sm font-bold text-midnight dark:text-white">{claim.claimant?.name}</p>
           <p className="text-xs text-slate-400 dark:text-slate-500">{claim.claimant?.email}</p>
+          {claim.contactNumber && (
+            <p className="mt-1 inline-flex items-center gap-1 text-xs font-bold text-brand-600 dark:text-brand-400">
+              <Phone size={12} /> {claim.contactNumber}
+            </p>
+          )}
           <p className="mt-2 rounded-lg bg-white p-2.5 text-xs leading-relaxed text-slate-600 dark:bg-slate-900 dark:text-slate-300">
             <span className="font-semibold">Proof:</span> “{claim.proofAnswer}”
           </p>

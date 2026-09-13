@@ -6,20 +6,30 @@ import { QRCodeSVG } from 'qrcode.react';
 import Spinner from '../components/ui/Spinner';
 import Badge from '../components/ui/Badge';
 import Modal from '../components/ui/Modal';
+import Pagination from '../components/ui/Pagination';
 import { claimService } from '../services';
 
 export default function MyClaimsPage() {
   const [claims, setClaims] = useState([]);
   const [loading, setLoading] = useState(true);
   const [qrClaim, setQrClaim] = useState(null);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [total, setTotal] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
 
   useEffect(() => {
+    setLoading(true);
     claimService
-      .getMyClaims()
-      .then((data) => setClaims(data.claims))
+      .getMyClaims(page, pageSize)
+      .then((data) => {
+        setClaims(data.claims);
+        setTotal(data.total || 0);
+        setTotalPages(data.totalPages || 1);
+      })
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, []);
+  }, [page, pageSize]);
 
   if (loading) return <Spinner full />;
 
@@ -91,6 +101,15 @@ export default function MyClaimsPage() {
           })}
         </div>
       )}
+
+      <Pagination
+        page={page}
+        pageSize={pageSize}
+        total={total}
+        totalPages={totalPages}
+        onChangePage={setPage}
+        onPageSizeChange={(s) => { setPageSize(s); setPage(1); }}
+      />
 
       <Modal open={Boolean(qrClaim)} onClose={() => setQrClaim(null)} title="Your handover QR code">
         {qrClaim && (

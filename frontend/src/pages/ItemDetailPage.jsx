@@ -22,6 +22,7 @@ export default function ItemDetailPage() {
   const [foundReportOpen, setFoundReportOpen] = useState(false);
   const [proof, setProof] = useState('');
   const [note, setNote] = useState('');
+  const [contactNumber, setContactNumber] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -48,18 +49,25 @@ export default function ItemDetailPage() {
   async function submitClaim(e) {
     e.preventDefault();
     if (!proof.trim()) return toast.error('Describe your proof or secret mark');
+    if (!contactNumber.trim()) return toast.error('Add a contact number so security can reach you');
     setSubmitting(true);
     try {
-      await claimService.createClaim({ itemId: item._id, proofAnswer: proof, note });
+      await claimService.createClaim({ itemId: item._id, proofAnswer: proof, note, contactNumber: contactNumber.trim() });
       toast.success('Claim submitted — security will review it');
       setClaimOpen(false);
       setProof('');
       setNote('');
+      setContactNumber('');
     } catch (err) {
       toast.error(err.response?.data?.message || 'Could not submit claim');
     } finally {
       setSubmitting(false);
     }
+  }
+
+  function openClaimModal() {
+    setContactNumber(user?.mobileNumber || '');
+    setClaimOpen(true);
   }
 
   const isFound = item.type === 'found';
@@ -117,7 +125,7 @@ export default function ItemDetailPage() {
           {canClaim ? (
             isFound ? (
               <>
-                <button className="btn-primary w-full" onClick={() => setClaimOpen(true)}>
+                <button className="btn-primary w-full" onClick={openClaimModal}>
                   <HandCoins size={18} /> This Is Mine!
                 </button>
                 <p className="text-center text-[11px] text-slate-400">
@@ -164,6 +172,16 @@ export default function ItemDetailPage() {
           </div>
           <Field label={isFound ? 'Secret mark answer' : 'Proof details'}>
             <textarea className="input-field min-h-24 resize-none" value={proof} onChange={(e) => setProof(e.target.value)} placeholder="Type your answer…" required />
+          </Field>
+          <Field label="Contact Number" hint="Security calls or texts this number to reach you for pickup">
+            <input
+              inputMode="tel"
+              className="input-field"
+              value={contactNumber}
+              onChange={(e) => setContactNumber(e.target.value)}
+              placeholder={user?.mobileNumber ? 'Prefilled from your profile — edit if needed' : 'e.g. 0777 123 456'}
+              required
+            />
           </Field>
           <Field label="Extra note (optional)">
             <input className="input-field" value={note} onChange={(e) => setNote(e.target.value)} placeholder="Where you left it, when…" />

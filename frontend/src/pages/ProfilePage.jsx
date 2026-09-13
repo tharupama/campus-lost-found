@@ -20,6 +20,7 @@ import { Field } from '../components/ui/Field';
 import Badge from '../components/ui/Badge';
 import Modal from '../components/ui/Modal';
 import Spinner from '../components/ui/Spinner';
+import Pagination from '../components/ui/Pagination';
 import { authService, claimService, itemService } from '../services';
 
 const TABS = [
@@ -49,9 +50,11 @@ export default function ProfilePage() {
   const [myItems, setMyItems] = useState([]);
   const [activityLoading, setActivityLoading] = useState(true);
   const [qrClaim, setQrClaim] = useState(null);
+  const [activityPage, setActivityPage] = useState(1);
+  const [activityPageSize, setActivityPageSize] = useState(10);
 
   useEffect(() => {
-    Promise.all([claimService.getMyClaims(), itemService.getMyItems()])
+    Promise.all([claimService.getMyClaims(1, 100), itemService.getMyItems('', 1, 100)])
       .then(([claimsData, itemsData]) => {
         setClaims(claimsData.claims);
         setMyItems(itemsData.items);
@@ -59,6 +62,10 @@ export default function ProfilePage() {
       .catch(() => {})
       .finally(() => setActivityLoading(false));
   }, []);
+
+  useEffect(() => {
+    setActivityPage(1);
+  }, [activityTab]);
 
   useEffect(() => {
     if (user) {
@@ -73,6 +80,13 @@ export default function ProfilePage() {
   }, [user]);
 
   const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
+
+  const paginate = (arr) => {
+    const start = (activityPage - 1) * activityPageSize;
+    return arr.slice(start, start + activityPageSize);
+  };
+
+  const activitySource = activityTab === 'claims' ? claims : myItems.filter((i) => i.type === activityTab);
 
   function onFileChange(e) {
     const file = e.target.files?.[0];
@@ -248,7 +262,7 @@ export default function ProfilePage() {
           <Spinner />
         ) : activityTab === 'claims' ? (
           <ActivityList
-            items={claims}
+            items={paginate(claims)}
             empty={['No claims yet', 'Browse the feed and hit "This Is Mine" on something that looks familiar.', '/', 'Browse feed']}
             render={(claim) => {
               const item = claim.item;
@@ -292,7 +306,7 @@ export default function ProfilePage() {
           />
         ) : (
           <ActivityList
-            items={myItems.filter((i) => i.type === activityTab)}
+            items={paginate(myItems.filter((i) => i.type === activityTab))}
             empty={
               activityTab === 'found'
                 ? ['No found items yet', 'Found something? Report it and drop it off at the guard room.', '/', 'Report an item']
@@ -335,6 +349,17 @@ export default function ProfilePage() {
                 </>
               );
             }}
+          />
+        )}
+
+        {activitySource.length > 0 && (
+          <Pagination
+            page={activityPage}
+            pageSize={activityPageSize}
+            total={activitySource.length}
+            totalPages={Math.max(1, Math.ceil(activitySource.length / activityPageSize))}
+            onChangePage={setActivityPage}
+            onPageSizeChange={(s) => { setActivityPageSize(s); setActivityPage(1); }}
           />
         )}
       </div>

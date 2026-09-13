@@ -42,8 +42,8 @@ export const itemService = {
     const { data } = await api.get(`/items/${id}`);
     return data;
   },
-  async getMyItems(type = '') {
-    const { data } = await api.get('/items/mine', { params: type ? { type } : {} });
+  async getMyItems(type = '', page = 1, pageSize = 12) {
+    const { data } = await api.get('/items/mine', { params: { page, pageSize, ...(type ? { type } : {}) } });
     return data;
   },
   async createItem(formData) {
@@ -59,15 +59,15 @@ export const claimService = {
     const { data } = await api.post('/claims', payload);
     return data;
   },
-  async getMyClaims() {
-    const { data } = await api.get('/claims/mine');
+  async getMyClaims(page = 1, pageSize = 10) {
+    const { data } = await api.get('/claims/mine', { params: { page, pageSize } });
     return data;
   },
 };
 
 export const notificationService = {
-  async getMine() {
-    const { data } = await api.get('/notifications');
+  async getMine(page = 1, pageSize = 10) {
+    const { data } = await api.get('/notifications', { params: { page, pageSize } });
     return data;
   },
   async markAllRead() {
@@ -77,20 +77,20 @@ export const notificationService = {
 };
 
 export const adminService = {
-  async getClaims(status = '') {
-    const { data } = await api.get('/admin/claims', { params: status ? { status } : {} });
+  async getClaims(status = '', page = 1, pageSize = 10) {
+    const { data } = await api.get('/admin/claims', { params: { ...(status ? { status } : {}), page, pageSize } });
     return data;
   },
   async reviewClaim(id, status) {
     const { data } = await api.patch(`/admin/claims/${id}`, { status });
     return data;
   },
-  async getVault() {
-    const { data } = await api.get('/admin/vault');
+  async getVault(page = 1, pageSize = 12) {
+    const { data } = await api.get('/admin/vault', { params: { page, pageSize } });
     return data;
   },
-  async getItems(search = '') {
-    const { data } = await api.get('/admin/items', { params: search ? { search } : {} });
+  async getItems(search = '', page = 1, pageSize = 12) {
+    const { data } = await api.get('/admin/items', { params: { ...(search ? { search } : {}), page, pageSize } });
     return data;
   },
   async updateItem(id, payload) {
@@ -109,8 +109,8 @@ export const adminService = {
     const { data } = await api.post('/admin/handover', payload);
     return data;
   },
-  async getUsers(search = '') {
-    const { data } = await api.get('/admin/users', { params: search ? { search } : {} });
+  async getUsers(search = '', page = 1, pageSize = 10) {
+    const { data } = await api.get('/admin/users', { params: { ...(search ? { search } : {}), page, pageSize } });
     return data;
   },
   async updateUser(id, payload) {

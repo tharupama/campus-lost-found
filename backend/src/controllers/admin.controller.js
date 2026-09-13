@@ -3,6 +3,7 @@ const Item = require('../models/Item.model');
 const User = require('../models/User.model');
 const Notification = require('../models/Notification.model');
 const { notifyClaimUpdate, notifyItemInVault } = require('../services/notification.service');
+const { parsePagination, pageMeta } = require('../utils/pagination');
 
 const ROLES = ['student', 'guard', 'admin', 'user'];
 const ITEM_STATUSES = ['active', 'claimed', 'resolved'];
@@ -21,8 +22,12 @@ exports.getUsers = async (req, res, next) => {
         }
       : {};
 
-    const users = await User.find(filter).select('-password').sort({ createdAt: -1 });
-    res.status(200).json({ users });
+    const { page, pageSize, skip, limit } = parsePagination(req.query, 10, 100);
+    const users = await User.find(filter).select('-password').sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+    const total = await User.countDocuments(filter);
+    res.status(200).json({ users, total, ...pageMeta(total, page, pageSize) });
   } catch (err) {
     next(err);
   }
@@ -111,15 +116,18 @@ exports.getAllItems = async (req, res, next) => {
     }
     if (type) filter.type = type;
     if (status) filter.status = status;
+    const { page, pageSize, skip, limit } = parsePagination(req.query, 12, 200);
 
     const items = await Item.find(filter)
       .select('+secretFeature')
       .populate('createdBy', 'name email')
       .populate('claimedBy', 'name email avatar')
       .sort({ createdAt: -1 })
-      .limit(Number(req.query.limit) || 200);
+      .skip(skip)
+      .limit(limit);
 
-    res.status(200).json({ items, total: items.length });
+    const total = await Item.countDocuments(filter);
+    res.status(200).json({ items, total, ...pageMeta(total, page, pageSize) });
   } catch (err) {
     next(err);
   }
@@ -174,13 +182,18 @@ exports.getClaims = async (req, res, next) => {
     const filter = {};
     if (req.query.status) filter.status = req.query.status;
 
+    const { page, pageSize, skip, limit } = parsePagination(req.query, 10, 100);
     const claims = await Claim.find(filter)
-      .populate('item', 'title category location image type status createdBy date +secretFeature')
+      .populate('item', 'title category location image type status date description handoverStatus createdBy +secretFeature')
+      .populate('item.createdBy', 'name email mobileNumber')
       .populate('claimant', 'name email avatar')
       .populate('reviewedBy', 'name')
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
 
-    res.status(200).json({ claims });
+    const total = await Claim.countDocuments(filter);
+    res.status(200).json({ claims, total, ...pageMeta(total, page, pageSize) });
   } catch (err) {
     next(err);
   }
@@ -220,12 +233,17 @@ exports.reviewClaim = async (req, res, next) => {
 
 exports.getVault = async (req, res, next) => {
   try {
-    const items = await Item.find({ status: { $in: ['active', 'claimed'] } })
+    const filter = { status: { $in: ['active', 'claimed'] } };
+    const { page, pageSize, skip, limit } = parsePagination(req.query, 12, 100);
+    const items = await Item.find(filter)
       .select('+secretFeature')
       .populate('createdBy', 'name email avatar')
       .populate('claimedBy', 'name email avatar')
-      .sort({ createdAt: -1 });
-    res.status(200).json({ items });
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+    const total = await Item.countDocuments(filter);
+    res.status(200).json({ items, total, ...pageMeta(total, page, pageSize) });
   } catch (err) {
     next(err);
   }

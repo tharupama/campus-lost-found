@@ -6,6 +6,7 @@ import toast from 'react-hot-toast';
 import FilterBar from '../components/feed/FilterBar';
 import ItemCard from '../components/ui/ItemCard';
 import Spinner from '../components/ui/Spinner';
+import Pagination from '../components/ui/Pagination';
 import { itemService } from '../services';
 
 export default function FeedPage() {
@@ -13,10 +14,16 @@ export default function FeedPage() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({ type: '', category: '', location: '', search: '' });
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(12);
+  const [total, setTotal] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
 
-  const search = useDebouncedCallback((f) => {
+  const load = (f, p, s) => {
     const q = f.search.trim();
     const params = {
+      page: p,
+      pageSize: s,
       ...(f.type && { type: f.type }),
       ...(f.category && { category: f.category }),
       ...(f.location && { location: f.location }),
@@ -25,14 +32,24 @@ export default function FeedPage() {
     setLoading(true);
     itemService
       .getItems(params)
-      .then((data) => setItems(data.items))
+      .then((data) => {
+        setItems(data.items);
+        setTotal(data.total || 0);
+        setTotalPages(data.totalPages || 1);
+      })
       .catch(() => toast.error('Could not load items'))
       .finally(() => setLoading(false));
-  }, 350);
+  };
+
+  const search = useDebouncedCallback(load, 350);
 
   useEffect(() => {
-    search(filters);
-  }, [filters]);
+    setPage(1);
+  }, [filters, pageSize]);
+
+  useEffect(() => {
+    search(filters, page, pageSize);
+  }, [filters, page, pageSize]);
 
   return (
     <div className="mx-auto max-w-5xl px-4 pb-28 pt-4 md:pb-10">
@@ -67,6 +84,15 @@ export default function FeedPage() {
           </AnimatePresence>
         </motion.div>
       )}
+
+      <Pagination
+        page={page}
+        pageSize={pageSize}
+        total={total}
+        totalPages={totalPages}
+        onChangePage={setPage}
+        onPageSizeChange={(s) => { setPageSize(s); }}
+      />
     </div>
   );
 }
