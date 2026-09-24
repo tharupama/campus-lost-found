@@ -9,7 +9,7 @@ export default function BottomNav({ openReport }) {
   const { unread } = useNotifications();
 
   const items = [
-    { to: '/', icon: Home, label: 'Feed', end: true },
+    { to: '/feed', icon: Home, label: 'Feed', end: true },
     {
       to: '/my-claims',
       icon: HandCoins,
@@ -27,7 +27,11 @@ export default function BottomNav({ openReport }) {
   ];
 
   if (user && ['admin', 'guard'].includes(user.role)) {
-    rightItems.push({ to: '/admin', icon: ShieldCheck, label: 'Admin' });
+    rightItems.push({
+      to: '/admin',
+      icon: ShieldCheck,
+      label: user.role === 'guard' ? 'Guard' : 'Admin',
+    });
   }
 
   return (

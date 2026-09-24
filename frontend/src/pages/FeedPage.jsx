@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useDebouncedCallback } from 'use-debounce';
 import toast from 'react-hot-toast';
@@ -11,9 +11,16 @@ import { itemService } from '../services';
 
 export default function FeedPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const urlType = searchParams.get('type');
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filters, setFilters] = useState({ type: '', category: '', location: '', search: '' });
+  const [filters, setFilters] = useState({
+    type: urlType === 'lost' || urlType === 'found' ? urlType : '',
+    category: '',
+    location: '',
+    search: '',
+  });
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(12);
   const [total, setTotal] = useState(0);

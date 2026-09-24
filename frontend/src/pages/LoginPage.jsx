@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Mail, Lock, UserRound, Loader2, ShieldCheck, Building2, GraduationCap } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -9,12 +9,19 @@ import { DEMO_ACCOUNTS, GOOGLE_CLIENT_ID } from '../config/constants';
 export default function LoginPage() {
   const { login, register, googleLogin } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const next = searchParams.get('next');
   const gRef = useRef(null);
   const [mode, setMode] = useState(localStorage.getItem('clf_register_mode') === 'register' ? 'register' : 'login');
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+
+  function redirectTarget(user) {
+    if (next && next.startsWith('/feed')) return next;
+    return user.role === 'student' ? '/feed' : '/admin';
+  }
 
   useEffect(() => {
     const scriptId = 'gsi-client';
@@ -60,7 +67,7 @@ export default function LoginPage() {
         user.name ? `Welcome, ${user.name.split(' ')[0]}!` : 'Welcome!'
       );
       localStorage.removeItem('clf_register_mode');
-      navigate(user.role === 'student' ? '/' : '/admin');
+      navigate(redirectTarget(user));
     } catch (err) {
       toast.error(err.response?.data?.message || 'Google sign-in failed');
     } finally {
@@ -94,7 +101,7 @@ export default function LoginPage() {
         mode === 'register' ? 'Account created — welcome!' : `Welcome back, ${user.name.split(' ')[0]}!`
       );
       localStorage.removeItem('clf_register_mode');
-      navigate(user.role === 'student' ? '/' : '/admin');
+      navigate(redirectTarget(user));
     } catch (err) {
       toast.error(err.response?.data?.message || (mode === 'register' ? 'Registration failed' : 'Login failed'));
     } finally {

@@ -38,7 +38,7 @@ export default function ItemDetailPage() {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-4">
         <p className="text-lg font-bold">Item not found</p>
-        <button className="btn-ghost" onClick={() => navigate('/')}>Back to feed</button>
+        <button className="btn-ghost" onClick={() => navigate('/feed')}>Back to feed</button>
       </div>
     );
   }

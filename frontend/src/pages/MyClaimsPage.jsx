@@ -50,7 +50,7 @@ export default function MyClaimsPage() {
           <span className="mb-3 flex h-16 w-16 items-center justify-center rounded-3xl bg-white text-3xl shadow-card dark:bg-slate-900">📌</span>
           <p className="font-bold text-midnight dark:text-white">No claims yet</p>
           <p className="mt-1 text-sm text-slate-400 dark:text-slate-500">Browse the feed and hit “This Is Mine” on something that looks familiar.</p>
-          <Link to="/" className="btn-primary mt-4">Browse feed</Link>
+          <Link to="/feed" className="btn-primary mt-4">Browse feed</Link>
         </div>
       ) : (
         <div className="space-y-3">

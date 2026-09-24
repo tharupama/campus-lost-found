@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Outlet } from 'react-router-dom';
-import TopBar from './TopBar';
+import SiteNav from './SiteNav';
 import BottomNav from './BottomNav';
 import ReportModal from '../ReportModal';
 
@@ -15,7 +15,7 @@ export default function AppShell() {
 
   return (
     <div className="min-h-screen">
-      <TopBar />
+      <SiteNav />
       <Outlet context={{ openReport }} />
       <BottomNav openReport={() => openReport()} />
       <div className="hidden md:fixed md:bottom-6 md:left-1/2 md:z-40 md:flex md:-translate-x-1/2 md:gap-3">

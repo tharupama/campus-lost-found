@@ -7,6 +7,9 @@ import AppShell from './components/layout/AppShell';
 import LoginPage from './pages/LoginPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
+import LandingPage from './pages/LandingPage';
+import AboutPage from './pages/AboutPage';
+import ContactPage from './pages/ContactPage';
 import FeedPage from './pages/FeedPage';
 import ItemDetailPage from './pages/ItemDetailPage';
 import MyClaimsPage from './pages/MyClaimsPage';
@@ -33,14 +36,9 @@ function LoginGate({ children }) {
 function RoleGate({ children }) {
   const { user } = useAuth();
   if (!user || !['admin', 'guard'].includes(user.role)) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/feed" replace />;
   }
   return children;
-}
-
-function RootRedirect() {
-  const { user } = useAuth();
-  return user && ['admin', 'guard'].includes(user.role) ? <Navigate to="/admin" replace /> : <FeedPage />;
 }
 
 export default function App() {
@@ -53,6 +51,9 @@ export default function App() {
             <Route path="/login" element={<LoginPage />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/about" element={<AboutPage />} />
+            <Route path="/contact" element={<ContactPage />} />
             <Route
               element={
                 <LoginGate>
@@ -60,7 +61,7 @@ export default function App() {
                 </LoginGate>
               }
             >
-              <Route path="/" element={<RootRedirect />} />
+              <Route path="/feed" element={<FeedPage />} />
               <Route path="/items/:id" element={<ItemDetailPage />} />
               <Route path="/my-claims" element={<MyClaimsPage />} />
               <Route path="/notifications" element={<NotificationsPage />} />
