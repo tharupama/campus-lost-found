@@ -23,7 +23,7 @@ export default function SiteNav() {
   const links = [
     ...BASE_LINKS,
     ...(user && ['admin', 'guard'].includes(user.role)
-      ? [{ to: '/admin', label: user.role === 'guard' ? 'Guard' : 'Admin', end: false }]
+      ? [{ to: user.role === 'guard' ? '/guard' : '/admin', label: user.role === 'guard' ? 'Guard' : 'Admin', end: false }]
       : []),
   ];
 

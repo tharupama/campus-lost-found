@@ -1,4 +1,4 @@
-import { Loader2 } from 'lucide-react';
+import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 
 export default function Spinner({ label = 'Loading', full }) {
   return (
@@ -7,8 +7,13 @@ export default function Spinner({ label = 'Loading', full }) {
         full ? 'min-h-[60vh]' : 'py-12'
       }`}
     >
-      <Loader2 className="animate-spin text-brand-500" size={36} />
-      <p className="text-sm font-medium">{label}</p>
+      <DotLottieReact
+        src="/animation/detective_search.lottie"
+        loop
+        autoplay
+        style={{ width: 130, height: 130 }}
+      />
+      {label && <p className="text-sm font-medium">{label}</p>}
     </div>
   );
 }

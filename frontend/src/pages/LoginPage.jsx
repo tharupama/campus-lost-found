@@ -20,6 +20,7 @@ export default function LoginPage() {
 
   function redirectTarget(user) {
     if (next && next.startsWith('/feed')) return next;
+    if (user.role === 'guard') return '/guard';
     return user.role === 'student' ? '/feed' : '/admin';
   }
 

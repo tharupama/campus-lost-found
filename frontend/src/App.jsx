@@ -15,6 +15,7 @@ import ItemDetailPage from './pages/ItemDetailPage';
 import MyClaimsPage from './pages/MyClaimsPage';
 import NotificationsPage from './pages/NotificationsPage';
 import AdminPage from './pages/AdminPage';
+import UnauthorizedPage from './pages/UnauthorizedPage';
 import ProfilePage from './pages/ProfilePage';
 import Spinner from './components/ui/Spinner';
 
@@ -33,10 +34,18 @@ function LoginGate({ children }) {
   return children;
 }
 
-function RoleGate({ children }) {
+function AdminGate({ children }) {
   const { user } = useAuth();
-  if (!user || !['admin', 'guard'].includes(user.role)) {
-    return <Navigate to="/feed" replace />;
+  if (!user || user.role !== 'admin') {
+    return <UnauthorizedPage />;
+  }
+  return children;
+}
+
+function GuardGate({ children }) {
+  const { user } = useAuth();
+  if (!user || user.role !== 'guard') {
+    return <UnauthorizedPage />;
   }
   return children;
 }
@@ -69,9 +78,17 @@ export default function App() {
               <Route
                 path="/admin"
                 element={
-                  <RoleGate>
+                  <AdminGate>
                     <AdminPage />
-                  </RoleGate>
+                  </AdminGate>
+                }
+              />
+              <Route
+                path="/guard"
+                element={
+                  <GuardGate>
+                    <AdminPage />
+                  </GuardGate>
                 }
               />
             </Route>

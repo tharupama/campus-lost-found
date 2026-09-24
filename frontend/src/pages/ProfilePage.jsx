@@ -158,7 +158,7 @@ export default function ProfilePage() {
           <p className="text-sm text-slate-400 dark:text-slate-500">Keep your contact details up to date</p>
         </div>
         {user && ['admin', 'guard'].includes(user.role) && (
-          <button onClick={() => navigate('/admin')} className="btn-ghost ml-auto !px-3 !py-2 text-xs">
+          <button onClick={() => navigate(user.role === 'guard' ? '/guard' : '/admin')} className="btn-ghost ml-auto !px-3 !py-2 text-xs">
             <ShieldCheck size={15} /> Security Panel
           </button>
         )}

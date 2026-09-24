@@ -28,7 +28,7 @@ export default function BottomNav({ openReport }) {
 
   if (user && ['admin', 'guard'].includes(user.role)) {
     rightItems.push({
-      to: '/admin',
+      to: user.role === 'guard' ? '/guard' : '/admin',
       icon: ShieldCheck,
       label: user.role === 'guard' ? 'Guard' : 'Admin',
     });

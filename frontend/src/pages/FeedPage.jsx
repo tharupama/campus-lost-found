@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useDebouncedCallback } from 'use-debounce';
 import toast from 'react-hot-toast';
+import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 import FilterBar from '../components/feed/FilterBar';
 import ItemCard from '../components/ui/ItemCard';
 import Spinner from '../components/ui/Spinner';
@@ -50,6 +51,8 @@ export default function FeedPage() {
 
   const search = useDebouncedCallback(load, 350);
 
+  const searching = filters.search.trim() !== '';
+
   useEffect(() => {
     setPage(1);
   }, [filters, pageSize]);
@@ -63,7 +66,20 @@ export default function FeedPage() {
       <FilterBar filters={filters} onChange={setFilters} />
 
       {loading ? (
-        <Spinner full />
+        searching ? (
+          <div className="flex flex-col items-center py-16">
+            <DotLottieReact
+              src="/animation/detective_search.lottie"
+              loop
+              autoplay
+              style={{ width: 170, height: 170 }}
+            />
+            <p className="mt-2 text-sm font-bold text-midnight dark:text-white">Searching…</p>
+            <p className="text-xs text-slate-400 dark:text-slate-500">Putting on the detective cap.</p>
+          </div>
+        ) : (
+          <Spinner full />
+        )
       ) : items.length === 0 ? (
         <div className="flex flex-col items-center py-20 text-center">
           <span className="mb-3 flex h-16 w-16 items-center justify-center rounded-3xl bg-white text-3xl shadow-card dark:bg-slate-900">
