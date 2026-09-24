@@ -40,6 +40,9 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true);
   const [pendingCount, setPendingCount] = useState(0);
   const [filter, setFilter] = useState('pending');
+  const [claimSearch, setClaimSearch] = useState('');
+  const [vaultSearch, setVaultSearch] = useState('');
+  const [vaultView, setVaultView] = useState('all');
   const [qrItem, setQrItem] = useState(null);
   const [scanCode, setScanCode] = useState('');
   const [verifying, setVerifying] = useState(false);
@@ -81,17 +84,17 @@ export default function AdminPage() {
 
   const refreshPendingCount = async () => {
     try {
-      const data = await adminService.getClaims('pending', 1, 1);
+      const data = await adminService.getClaims('pending', '', 1, 1);
       setPendingCount(data.total);
     } catch {
       // silent
     }
   };
 
-  const loadClaims = async (status = filter, p = claimsPage, s = claimsPageSize) => {
+  const loadClaims = async (status = filter, search = claimSearch, p = claimsPage, s = claimsPageSize) => {
     setLoading(true);
     try {
-      const data = await adminService.getClaims(status, p, s);
+      const data = await adminService.getClaims(status, search, p, s);
       setClaims(data.claims);
       setClaimsTotal(data.total || 0);
       setClaimsTotalPages(data.totalPages || 1);
@@ -103,11 +106,11 @@ export default function AdminPage() {
     setTab('claims');
   };
 
-  const loadVault = async (p = vaultPage, s = vaultPageSize) => {
+  const loadVault = async (search = vaultSearch, view = vaultView, p = vaultPage, s = vaultPageSize) => {
     setLoading(true);
     try {
       const [vaultData, approvedData] = await Promise.all([
-        adminService.getVault(p, s),
+        adminService.getVault(search, view, p, s),
         adminService.getClaims('approved', 1, 100),
       ]);
       setVault(vaultData.items);
@@ -121,6 +124,16 @@ export default function AdminPage() {
     }
     setTab('vault');
   };
+
+  const searchClaims = useDebouncedCallback(() => {
+    setClaimsPage(1);
+    loadClaims(filter, claimSearch, 1, claimsPageSize);
+  }, 350);
+
+  const searchVault = useDebouncedCallback(() => {
+    setVaultPage(1);
+    loadVault(vaultSearch, vaultView, 1, vaultPageSize);
+  }, 350);
 
   useEffect(() => {
     loadClaims('pending');
@@ -313,7 +326,7 @@ export default function AdminPage() {
       await adminService.reviewClaim(claim._id, status);
       toast.success(`Claim ${status}`);
       refreshPendingCount();
-      loadClaims(filter, claimsPage, claimsPageSize);
+      loadClaims(filter, claimSearch, claimsPage, claimsPageSize);
     } catch (err) {
       toast.error(err.response?.data?.message || 'Update failed');
     }
@@ -480,11 +493,21 @@ export default function AdminPage() {
 
             {tab === 'claims' && (
         <div>
+          <div className="relative mb-3">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+            <input
+              className="input-field pl-10"
+              placeholder="Search by item, claimant, phone or proof…"
+              value={claimSearch}
+              onChange={(e) => { setClaimSearch(e.target.value); searchClaims(); }}
+              onKeyDown={(e) => e.key === 'Enter' && loadClaims(filter, claimSearch, 1, claimsPageSize)}
+            />
+          </div>
           <div className="mb-4 flex gap-2 overflow-x-auto pb-1">
             {[['pending', 'Pending'], ['approved', 'Approved'], ['rejected', 'Rejected'], ['resolved', 'Resolved']].map(([key, label]) => (
               <button
                 key={key}
-                onClick={() => { setFilter(key); setClaimsPage(1); loadClaims(key, 1, claimsPageSize); }}
+                onClick={() => { setFilter(key); setClaimsPage(1); loadClaims(key, claimSearch, 1, claimsPageSize); }}
                 className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-semibold capitalize transition ${
                   filter === key ? 'bg-brand-600 text-white' : 'bg-white text-slate-500 dark:bg-slate-900 dark:text-slate-400'
                 }`}
@@ -496,7 +519,7 @@ export default function AdminPage() {
           {loading ? (
             <Spinner />
           ) : claims.length === 0 ? (
-            <Empty text="No claims in this state yet" />
+            <Empty text={claimSearch ? 'No claims match your search' : 'No claims in this state yet'} />
           ) : (
             <div className="space-y-4">
               {claims.map((claim) => (
@@ -509,19 +532,47 @@ export default function AdminPage() {
             pageSize={claimsPageSize}
             total={claimsTotal}
             totalPages={claimsTotalPages}
-            onChangePage={(p) => { setClaimsPage(p); loadClaims(filter, p, claimsPageSize); }}
-            onPageSizeChange={(s) => { setClaimsPageSize(s); setClaimsPage(1); loadClaims(filter, 1, s); }}
+            onChangePage={(p) => { setClaimsPage(p); loadClaims(filter, claimSearch, p, claimsPageSize); }}
+            onPageSizeChange={(s) => { setClaimsPageSize(s); setClaimsPage(1); loadClaims(filter, claimSearch, 1, s); }}
           />
         </div>
       )}
 
       {tab === 'vault' && (
         <div>
+          <div className="relative mb-3">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+            <input
+              className="input-field pl-10"
+              placeholder="Search by title, category, location…"
+              value={vaultSearch}
+              onChange={(e) => { setVaultSearch(e.target.value); searchVault(); }}
+              onKeyDown={(e) => e.key === 'Enter' && loadVault(vaultSearch, vaultView, 1, vaultPageSize)}
+            />
+          </div>
+          <div className="mb-4 flex gap-2 overflow-x-auto pb-1">
+            {[
+              ['all', 'All'],
+              ['pending', 'Awaiting drop-off'],
+              ['in_vault', 'In guard room'],
+              ['claimed', 'Claimed'],
+            ].map(([key, label]) => (
+              <button
+                key={key}
+                onClick={() => { setVaultView(key); setVaultPage(1); loadVault(vaultSearch, key, 1, vaultPageSize); }}
+                className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-semibold transition ${
+                  vaultView === key ? 'bg-brand-600 text-white' : 'bg-white text-slate-500 dark:bg-slate-900 dark:text-slate-400'
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
           <p className="mb-3 text-sm text-slate-400 dark:text-slate-500">{vaultTotal} reported items · in-vault items are live in the public feed · QR unlocks on approved claim</p>
           {loading ? (
             <Spinner />
           ) : vault.length === 0 ? (
-            <Empty text="Vault is empty" />
+            <Empty text={vaultSearch || vaultView !== 'all' ? 'No items match your filters' : 'Vault is empty'} />
           ) : (
             <>
               {pendingDropOffs.length > 0 && (
@@ -611,8 +662,8 @@ export default function AdminPage() {
             pageSize={vaultPageSize}
             total={vaultTotal}
             totalPages={vaultTotalPages}
-            onChangePage={(p) => { setVaultPage(p); loadVault(p, vaultPageSize); }}
-            onPageSizeChange={(s) => { setVaultPageSize(s); setVaultPage(1); loadVault(1, s); }}
+            onChangePage={(p) => { setVaultPage(p); loadVault(vaultSearch, vaultView, p, vaultPageSize); }}
+            onPageSizeChange={(s) => { setVaultPageSize(s); setVaultPage(1); loadVault(vaultSearch, vaultView, 1, s); }}
           />
         </div>
       )}

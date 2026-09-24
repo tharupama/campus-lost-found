@@ -77,16 +77,16 @@ export const notificationService = {
 };
 
 export const adminService = {
-  async getClaims(status = '', page = 1, pageSize = 10) {
-    const { data } = await api.get('/admin/claims', { params: { ...(status ? { status } : {}), page, pageSize } });
+  async getClaims(status = '', search = '', page = 1, pageSize = 10) {
+    const { data } = await api.get('/admin/claims', { params: { ...(status ? { status } : {}), ...(search ? { search } : {}), page, pageSize } });
     return data;
   },
   async reviewClaim(id, status) {
     const { data } = await api.patch(`/admin/claims/${id}`, { status });
     return data;
   },
-  async getVault(page = 1, pageSize = 12) {
-    const { data } = await api.get('/admin/vault', { params: { page, pageSize } });
+  async getVault(search = '', view = 'all', page = 1, pageSize = 12) {
+    const { data } = await api.get('/admin/vault', { params: { ...(search ? { search } : {}), ...(view !== 'all' ? { view } : {}), page, pageSize } });
     return data;
   },
   async getItems(search = '', page = 1, pageSize = 12) {

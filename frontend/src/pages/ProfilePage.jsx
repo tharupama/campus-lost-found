@@ -44,6 +44,8 @@ export default function ProfilePage() {
   const [avatar, setAvatar] = useState(null);
   const [preview, setPreview] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [avatarOpen, setAvatarOpen] = useState(false);
+  const [dragOver, setDragOver] = useState(false);
 
   const [activityTab, setActivityTab] = useState('claims');
   const [claims, setClaims] = useState([]);
@@ -88,9 +90,12 @@ export default function ProfilePage() {
 
   const activitySource = activityTab === 'claims' ? claims : myItems.filter((i) => i.type === activityTab);
 
-  function onFileChange(e) {
-    const file = e.target.files?.[0];
+  function applyFile(file) {
     if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please choose an image file');
+      return;
+    }
     if (file.size > 8 * 1024 * 1024) {
       toast.error('Image must be under 8MB');
       return;
@@ -99,6 +104,11 @@ export default function ProfilePage() {
     const reader = new FileReader();
     reader.onload = () => setPreview(reader.result);
     reader.readAsDataURL(file);
+  }
+
+  function onFileChange(e) {
+    applyFile(e.target.files?.[0]);
+    e.target.value = '';
   }
 
   async function handleSave(e) {
@@ -161,8 +171,8 @@ export default function ProfilePage() {
             <div className="flex items-center gap-4">
               <button
                 type="button"
-                onClick={() => fileRef.current?.click()}
-                className="relative flex h-20 w-20 items-center justify-center overflow-hidden rounded-full border-2 border-dashed border-slate-300 bg-slate-50 transition hover:border-brand-400 dark:border-slate-700 dark:bg-slate-800"
+                onClick={() => setAvatarOpen(true)}
+                className="relative flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-dashed border-slate-300 bg-slate-50 transition hover:border-brand-400 dark:border-slate-700 dark:bg-slate-800"
               >
                 {preview ? (
                   <img src={preview} alt="avatar" className="h-full w-full object-cover" />
@@ -231,6 +241,47 @@ export default function ProfilePage() {
           </button>
         </div>
       </form>
+
+      <Modal open={avatarOpen} onClose={() => setAvatarOpen(false)} title="Profile Picture">
+        <div className="flex flex-col items-center justify-center gap-4">
+          <div
+            role="button"
+            tabIndex={0}
+            onDragOver={(e) => {
+              e.preventDefault();
+              setDragOver(true);
+            }}
+            onDragLeave={() => setDragOver(false)}
+            onDrop={(e) => {
+              e.preventDefault();
+              setDragOver(false);
+              applyFile(e.dataTransfer.files?.[0]);
+            }}
+            className={`flex w-full flex-col items-center justify-center gap-4 rounded-2xl border-2 border-dashed p-6 transition ${
+              dragOver
+                ? 'border-brand-500 bg-brand-50 dark:bg-brand-500/10'
+                : 'border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-800'
+            }`}
+          >
+            <div className="h-48 w-48 shrink-0 overflow-hidden rounded-full border-4 border-white bg-slate-100 shadow-card dark:border-slate-700 dark:bg-slate-800">
+              {preview ? (
+                <img src={preview} alt="avatar" className="h-full w-full object-cover" />
+              ) : (
+                <div className="flex h-full w-full items-center justify-center text-slate-300 dark:text-slate-600">
+                  <UserRound size={60} />
+                </div>
+              )}
+            </div>
+            <p className="text-center text-sm text-slate-500 dark:text-slate-400">
+              {dragOver ? 'Drop the image to set it' : 'Drag &amp; drop a photo here, or use the button below.'}
+            </p>
+          </div>
+
+          <button type="button" onClick={() => fileRef.current?.click()} className="btn-primary w-full">
+            <Camera size={16} /> Change Picture
+          </button>
+        </div>
+      </Modal>
 
       <div className="mt-8">
         <h2 className="mb-3 text-sm font-extrabold uppercase tracking-wide text-slate-400 dark:text-slate-500">My Activity</h2>

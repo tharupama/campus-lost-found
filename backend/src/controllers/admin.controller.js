@@ -182,6 +182,21 @@ exports.getClaims = async (req, res, next) => {
     const filter = {};
     if (req.query.status) filter.status = req.query.status;
 
+    const q = String(req.query.search || '').trim();
+    if (q) {
+      const re = { $regex: q, $options: 'i' };
+      const [itemIds, userIds] = await Promise.all([
+        Item.find({ $or: [{ title: re }, { category: re }, { location: re }, { description: re }] }).distinct('_id'),
+        User.find({ $or: [{ name: re }, { email: re }] }).distinct('_id'),
+      ]);
+      filter.$or = [
+        { item: { $in: itemIds } },
+        { claimant: { $in: userIds } },
+        { contactNumber: re },
+        { proofAnswer: re },
+      ];
+    }
+
     const { page, pageSize, skip, limit } = parsePagination(req.query, 10, 100);
     const claims = await Claim.find(filter)
       .populate('item', 'title category location image type status date description handoverStatus createdBy +secretFeature')
@@ -234,6 +249,21 @@ exports.reviewClaim = async (req, res, next) => {
 exports.getVault = async (req, res, next) => {
   try {
     const filter = { status: { $in: ['active', 'claimed'] } };
+    const view = String(req.query.view || 'all');
+    if (view === 'pending') {
+      filter.type = 'found';
+      filter.handoverStatus = 'pending';
+    } else if (view === 'in_vault') {
+      filter.handoverStatus = 'in_vault';
+    } else if (view === 'claimed') {
+      filter.status = 'claimed';
+    }
+
+    const q = String(req.query.search || '').trim();
+    if (q) {
+      const re = { $regex: q, $options: 'i' };
+      filter.$or = [{ title: re }, { category: re }, { location: re }, { description: re }];
+    }
     const { page, pageSize, skip, limit } = parsePagination(req.query, 12, 100);
     const items = await Item.find(filter)
       .select('+secretFeature')
