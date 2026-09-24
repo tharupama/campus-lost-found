@@ -76,6 +76,17 @@ export const notificationService = {
   },
 };
 
+export const contactService = {
+  async send(payload) {
+    const { data } = await api.post('/contact', payload);
+    return data;
+  },
+  async getStaff() {
+    const { data } = await api.get('/contact/staff');
+    return data;
+  },
+};
+
 export const adminService = {
   async getClaims(status = '', search = '', page = 1, pageSize = 10) {
     const { data } = await api.get('/admin/claims', { params: { ...(status ? { status } : {}), ...(search ? { search } : {}), page, pageSize } });
@@ -111,6 +122,10 @@ export const adminService = {
   },
   async getUsers(search = '', page = 1, pageSize = 10) {
     const { data } = await api.get('/admin/users', { params: { ...(search ? { search } : {}), page, pageSize } });
+    return data;
+  },
+  async createUser(payload) {
+    const { data } = await api.post('/admin/users', payload);
     return data;
   },
   async updateUser(id, payload) {

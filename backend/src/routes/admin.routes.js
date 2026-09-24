@@ -6,6 +6,7 @@ const {
   handover,
   markAvailable,
   getUsers,
+  createUser,
   updateUser,
   deleteUser,
   getAllItems,
@@ -23,6 +24,7 @@ router.patch('/items/:id/available', markAvailable);
 router.post('/handover', handover);
 
 router.get('/users', authorize('admin'), getUsers);
+router.post('/users', authorize('admin'), createUser);
 router.put('/users/:id', authorize('admin'), updateUser);
 router.delete('/users/:id', authorize('admin'), deleteUser);
 

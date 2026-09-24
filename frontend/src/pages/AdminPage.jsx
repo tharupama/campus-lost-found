@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useDebouncedCallback } from 'use-debounce';
-import { ShieldCheck, HandCoins, Archive, ScanLine, Check, X, QrCode, KeyRound, Loader2, PackageCheck, PackageX, Users, Pencil, Trash2, Search, Package, Phone } from 'lucide-react';
+import { ShieldCheck, HandCoins, Archive, ScanLine, Check, X, QrCode, KeyRound, Loader2, PackageCheck, PackageX, Users, UserPlus, Pencil, Trash2, Search, Package, Phone } from 'lucide-react';
 import { format, formatDistanceToNow } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
 import { QRCodeSVG } from 'qrcode.react';
@@ -52,6 +52,9 @@ export default function AdminPage() {
   const [editId, setEditId] = useState(null);
   const [editForm, setEditForm] = useState({ name: '', email: '', role: '', mobileNumber: '', address: '', password: '' });
   const [savingUser, setSavingUser] = useState(false);
+  const [createOpen, setCreateOpen] = useState(false);
+  const [createForm, setCreateForm] = useState({ name: '', email: '', role: 'student', mobileNumber: '', address: '', password: '' });
+  const [savingCreate, setSavingCreate] = useState(false);
   const [items, setItems] = useState([]);
   const [itemsLoading, setItemsLoading] = useState(false);
   const [itemSearch, setItemSearch] = useState('');
@@ -285,6 +288,36 @@ export default function AdminPage() {
       toast.error(err.response?.data?.message || 'Could not update user');
     } finally {
       setSavingUser(false);
+    }
+  }
+
+  function openCreate() {
+    setCreateForm({ name: '', email: '', role: 'student', mobileNumber: '', address: '', password: '' });
+    setCreateOpen(true);
+  }
+
+  async function createUserSubmit(e) {
+    e.preventDefault();
+    if (!createForm.name.trim() || !createForm.email.trim() || !createForm.password) {
+      return toast.error('Name, email and password are required');
+    }
+    setSavingCreate(true);
+    try {
+      const { message } = await adminService.createUser({
+        name: createForm.name.trim(),
+        email: createForm.email.trim(),
+        role: createForm.role,
+        mobileNumber: createForm.mobileNumber.trim(),
+        address: createForm.address.trim(),
+        password: createForm.password,
+      });
+      toast.success(message || 'User created');
+      setCreateOpen(false);
+      await loadUsers();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Could not create user');
+    } finally {
+      setSavingCreate(false);
     }
   }
 
@@ -818,14 +851,19 @@ export default function AdminPage() {
           </>
         ) : (
           <>
-            <div className="mb-5 flex items-center gap-3">
-              <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-500 to-rose-500 text-white shadow-glow">
-                <Users size={20} />
-              </span>
-              <div>
-                <h1 className="text-xl font-extrabold text-midnight dark:text-white">User Management</h1>
-                <p className="text-sm text-slate-400 dark:text-slate-500">Manage accounts · update &amp; delete users</p>
+            <div className="mb-5 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-500 to-rose-500 text-white shadow-glow">
+                  <Users size={20} />
+                </span>
+                <div>
+                  <h1 className="text-xl font-extrabold text-midnight dark:text-white">User Management</h1>
+                  <p className="text-sm text-slate-400 dark:text-slate-500">Manage accounts · create, update &amp; delete users</p>
+                </div>
               </div>
+              <button onClick={openCreate} className="btn-primary !px-3 !py-2 text-sm">
+                <UserPlus size={16} /> Create user
+              </button>
             </div>
             <p className="mb-3 text-sm text-slate-400 dark:text-slate-500">
               {usersTotal} accounts · only admins can view or manage users
@@ -945,6 +983,41 @@ export default function AdminPage() {
             <button type="button" className="btn-ghost flex-1" onClick={() => setEditId(null)}>Cancel</button>
             <button type="submit" disabled={savingUser} className="btn-primary flex-1">
               {savingUser ? <Loader2 className="animate-spin" size={16} /> : <Check size={16} />} Save
+            </button>
+          </div>
+        </form>
+      </Modal>
+
+      <Modal open={createOpen} onClose={() => setCreateOpen(false)} title="Create user">
+        <form onSubmit={createUserSubmit} className="space-y-4">
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Name">
+              <input className="input-field" value={createForm.name} onChange={(e) => setCreateForm({ ...createForm, name: e.target.value })} required />
+            </Field>
+            <Field label="Email">
+              <input type="email" className="input-field" value={createForm.email} onChange={(e) => setCreateForm({ ...createForm, email: e.target.value })} required />
+            </Field>
+          </div>
+          <Field label="Role">
+            <select className="input-field" value={createForm.role} onChange={(e) => setCreateForm({ ...createForm, role: e.target.value })}>
+              {['student', 'guard', 'admin', 'user'].map((r) => (
+                <option key={r} value={r}>{r}</option>
+              ))}
+            </select>
+          </Field>
+          <Field label="Mobile Number">
+            <input className="input-field" value={createForm.mobileNumber} onChange={(e) => setCreateForm({ ...createForm, mobileNumber: e.target.value })} placeholder="e.g. 0777 123 456" />
+          </Field>
+          <Field label="Address">
+            <input className="input-field" value={createForm.address} onChange={(e) => setCreateForm({ ...createForm, address: e.target.value })} placeholder="Campus hall, room, block…" />
+          </Field>
+          <Field label="Password" hint="Required — min 6 characters">
+            <input type="password" className="input-field" value={createForm.password} onChange={(e) => setCreateForm({ ...createForm, password: e.target.value })} placeholder="Min 6 characters" required />
+          </Field>
+          <div className="flex gap-3">
+            <button type="button" className="btn-ghost flex-1" onClick={() => setCreateOpen(false)}>Cancel</button>
+            <button type="submit" disabled={savingCreate} className="btn-primary flex-1">
+              {savingCreate ? <Loader2 className="animate-spin" size={16} /> : <Check size={16} />} Create
             </button>
           </div>
         </form>

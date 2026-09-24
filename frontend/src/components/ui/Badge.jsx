@@ -12,6 +12,7 @@ const styles = {
   match: 'bg-violet-100 text-violet-600',
   claim: 'bg-sky-100 text-sky-600',
   system: 'bg-slate-100 text-slate-500',
+  contact: 'bg-fuchsia-100 text-fuchsia-600',
 };
 
 export default function Badge({ children, color }) {

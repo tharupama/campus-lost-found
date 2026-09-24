@@ -33,6 +33,44 @@ exports.getUsers = async (req, res, next) => {
   }
 };
 
+exports.createUser = async (req, res, next) => {
+  try {
+    const { name, email, role, mobileNumber, address, password } = req.body;
+
+    const cleanName = String(name || '').trim();
+    const mail = String(email || '').toLowerCase().trim();
+
+    if (!cleanName) return res.status(400).json({ message: 'Name is required' });
+    if (!mail) return res.status(400).json({ message: 'Email is required' });
+    if (!password) return res.status(400).json({ message: 'Password is required' });
+    if (String(password).length < 6) {
+      return res.status(400).json({ message: 'Password must be at least 6 characters' });
+    }
+
+    const roleValue = role || 'student';
+    if (!ROLES.includes(roleValue)) {
+      return res.status(400).json({ message: 'Invalid role' });
+    }
+
+    const exists = await User.findOne({ email: mail });
+    if (exists) return res.status(409).json({ message: 'Another account already uses this email' });
+
+    const user = await User.create({
+      name: cleanName,
+      email: mail,
+      role: roleValue,
+      mobileNumber: mobileNumber !== undefined ? String(mobileNumber).trim() : undefined,
+      address: address !== undefined ? String(address).trim() : undefined,
+      password: String(password),
+    });
+
+    user.password = undefined;
+    res.status(201).json({ user, message: 'User created' });
+  } catch (err) {
+    next(err);
+  }
+};
+
 exports.updateUser = async (req, res, next) => {
   try {
     const user = await User.findById(req.params.id);

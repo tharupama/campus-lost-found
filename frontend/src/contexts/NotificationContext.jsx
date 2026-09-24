@@ -30,6 +30,12 @@ export function NotificationProvider({ children }) {
     refresh();
   }, [refresh]);
 
+  useEffect(() => {
+    if (!user) return;
+    const timer = setInterval(refresh, 20000);
+    return () => clearInterval(timer);
+  }, [user, refresh]);
+
   const markAllRead = async () => {
     if (!unread) return;
     try {
