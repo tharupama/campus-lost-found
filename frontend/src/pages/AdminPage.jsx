@@ -443,8 +443,8 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="mx-auto flex max-w-6xl items-start gap-5 px-4 pb-28 pt-4 md:pb-10">
-      <aside className="sticky top-20 hidden w-56 shrink-0 flex-col gap-1.5 md:flex">
+    <div className="pb-28 pt-4 px-4 md:pb-10 md:pr-6 md:pl-72 lg:pr-8">
+      <aside className="fixed left-0 top-16 z-30 hidden h-[calc(100vh-4rem)] w-60 flex-col gap-1.5 overflow-y-auto border-r border-brand-800/70 bg-brand-950 p-3 md:flex">
         <SideBtn
           active={section === 'security'}
           onClick={() => setSection('security')}
@@ -468,10 +468,10 @@ export default function AdminPage() {
             label="User Management"
           />
         )}
-        <p className="mt-3 px-2 text-[11px] text-slate-400 dark:text-slate-500">Claims · vault · QR handover · accounts</p>
+        <p className="mt-auto px-2 pt-3 text-[11px] font-medium text-brand-300/70">Claims · vault · QR handover · accounts</p>
       </aside>
 
-      <div className="min-w-0 flex-1">
+      <div className="min-w-0">
         <div className="mb-5 flex gap-2 rounded-2xl bg-white p-1.5 shadow-card dark:bg-slate-900 md:hidden">
           {[
             { key: 'security', icon: ShieldCheck, label: 'Security' },
@@ -631,7 +631,7 @@ export default function AdminPage() {
                     </h2>
                     <span className="text-[11px] text-slate-400 dark:text-slate-500">hidden from public feed until verified</span>
                   </div>
-                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
                     {pendingDropOffs.map((item) => (
                       <div key={item._id} className="overflow-hidden rounded-2xl border border-amber-200 bg-white shadow-card dark:border-amber-500/30 dark:bg-slate-900">
                         <div className="relative aspect-[4/3]">
@@ -659,7 +659,7 @@ export default function AdminPage() {
                 </div>
               )}
 
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
                 {vaultItems.map((item) => {
                 const claim = claimForItem(item._id);
                 const hasClaim = Boolean(claim);
@@ -804,7 +804,7 @@ export default function AdminPage() {
             ) : items.length === 0 ? (
               <Empty text="No items match" />
             ) : (
-              <div className="grid gap-3 sm:grid-cols-2">
+              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
                 {items.map((item) => (
                   <div key={item._id} className="overflow-hidden rounded-2xl bg-white shadow-card dark:bg-slate-900">
                     <div className="relative aspect-[16/9]">
@@ -897,7 +897,7 @@ export default function AdminPage() {
           ) : allUsers.length === 0 ? (
             <Empty text="No users match" />
           ) : (
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
               {allUsers.map((u) => (
                 <div key={u._id} className="flex items-center gap-3 rounded-2xl bg-white p-4 shadow-card dark:bg-slate-900">
                   <span className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-brand-100 to-gold-100 text-sm font-extrabold text-brand-600 dark:from-brand-500/20 dark:to-gold-500/20 dark:text-brand-300">
@@ -1121,14 +1121,14 @@ function SideBtn({ active, onClick, icon: Icon, label, badge }) {
       onClick={onClick}
       className={`flex items-center gap-3 rounded-2xl px-4 py-3 text-left text-sm font-bold transition ${
         active
-          ? 'bg-brand-600 text-white shadow-card'
-          : 'bg-white text-slate-500 hover:bg-slate-50 dark:bg-slate-900 dark:text-slate-400 dark:hover:bg-slate-800'
+          ? 'bg-gold-500 text-brand-950 shadow-glow'
+          : 'bg-brand-800/40 text-brand-200/80 hover:bg-brand-700/60 hover:text-white'
       }`}
     >
       <Icon size={18} />
       <span className="flex-1">{label}</span>
       {badge > 0 && (
-        <span className={`flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[10px] font-extrabold ${active ? 'bg-white text-brand-600' : 'bg-rose-500 text-white'}`}>
+        <span className={`flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[10px] font-extrabold ${active ? 'bg-brand-950 text-gold-500' : 'bg-rose-400 text-white'}`}>
           {badge}
         </span>
       )}

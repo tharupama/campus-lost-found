@@ -35,7 +35,7 @@ export default function SiteNav() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-slate-200/70 bg-white/80 backdrop-blur-lg dark:border-slate-800 dark:bg-slate-900/80">
-      <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
+      <div className="mx-auto flex max-w-full items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-10">
         <Link to="/" className="flex items-center gap-2.5" aria-label="Ruhuna Lost & Found home">
           <UoRBadge size="md" />
           <span className="leading-tight">
@@ -151,7 +151,7 @@ export default function SiteNav() {
             className="overflow-hidden border-t border-slate-200/70 bg-white/95 backdrop-blur-lg md:hidden dark:border-slate-800 dark:bg-slate-950/95"
             aria-label="Mobile"
           >
-            <div className="mx-auto max-w-6xl space-y-1 px-4 py-4 sm:px-6">
+            <div className="mx-auto max-w-full space-y-1 px-4 py-4 sm:px-6 lg:px-10">
               {links.map((l) => (
                 <NavLink
                   key={l.to}
