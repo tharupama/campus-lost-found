@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import SiteNav from '../components/layout/SiteNav';
 import Footer from '../components/landing/Footer';
+import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 import { useAuth } from '../contexts/AuthContext';
 import { contactService } from '../services';
 
@@ -80,17 +81,31 @@ export default function ContactPage() {
   return (
     <div className="bg-slate-50 font-sans text-slate-800 antialiased dark:bg-slate-950 dark:text-slate-100">
       <SiteNav />
-      <main className="mx-auto max-w-3xl px-4 py-16 sm:px-6 sm:py-24">
-        <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-brand-600 dark:text-brand-400">
-          Contact
-        </p>
-        <h1 className="mt-3 font-display text-4xl font-black tracking-tight text-midnight sm:text-5xl dark:text-white">
-          Reach the lost &amp; found desk.
-        </h1>
-        <p className="mt-6 max-w-xl text-base leading-relaxed text-slate-600 dark:text-slate-300">
-          Send a message straight to the admin or security team. It arrives as a real-time alert on
-          their desks — no phone call needed.
-        </p>
+      <main>
+        <section className="relative overflow-hidden">
+          <div className="pointer-events-none absolute inset-0" aria-hidden="true">
+            <div className="absolute -top-24 left-1/2 h-[30rem] w-[46rem] -translate-x-1/2 rounded-full bg-gradient-to-br from-brand-200 via-gold-200 to-transparent opacity-70 blur-3xl dark:from-brand-500/20 dark:via-gold-500/15" />
+          </div>
+          <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-4 py-16 sm:px-6 sm:py-24 lg:grid-cols-[1fr_0.85fr] lg:gap-16">
+            <div>
+              <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-brand-600 dark:text-brand-400">
+                Contact
+              </p>
+              <h1 className="mt-3 font-display text-4xl font-black tracking-tight text-midnight sm:text-5xl dark:text-white">
+                Reach the lost &amp; found desk.
+              </h1>
+              <p className="mt-6 max-w-xl text-base leading-relaxed text-slate-600 dark:text-slate-300">
+                Send a message straight to the admin or security team. It arrives as a real-time alert
+                on their desks — no phone call needed.
+              </p>
+            </div>
+            <div className="mx-auto w-full max-w-sm lg:max-w-none">
+              <DotLottieReact src="/animation/ContactUs.lottie" loop autoplay style={{ width: '100%', height: 'auto' }} />
+            </div>
+          </div>
+        </section>
+
+        <div className="mx-auto max-w-3xl px-4 pb-16 sm:px-6 sm:pb-24">
 
         <div className="mt-10">
           <p className="mb-2 text-[11px] font-bold uppercase tracking-wide text-slate-400 dark:text-slate-500">
@@ -245,6 +260,7 @@ export default function ContactPage() {
               </div>
             );
           })}
+        </div>
         </div>
       </main>
       <Footer />
