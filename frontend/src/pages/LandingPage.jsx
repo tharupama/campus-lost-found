@@ -1,5 +1,6 @@
 ﻿import { useNavigate } from 'react-router-dom';
 import { motion, useReducedMotion } from 'framer-motion';
+import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 import {
   Camera,
   Sparkles,
@@ -12,7 +13,6 @@ import {
   ArrowRight,
 } from 'lucide-react';
 import SiteNav from '../components/layout/SiteNav';
-import ClaimTicket from '../components/landing/ClaimTicket';
 import Footer from '../components/landing/Footer';
 import { BUILDINGS } from '../config/constants';
 import { useAuth } from '../contexts/AuthContext';
@@ -169,14 +169,14 @@ export default function LandingPage() {
               </ul>
             </motion.div>
 
-            <motion.div
-              initial={reduce ? false : { opacity: 0, scale: 0.96 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-              className="lg:justify-self-end"
-            >
-              <ClaimTicket />
-            </motion.div>
+<motion.div
+      initial={reduce ? false : { opacity: 0, scale: 0.96 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+      className="mx-auto hidden w-full max-w-md sm:block lg:justify-self-end"
+    >
+      <DotLottieReact src="/animation/map.lottie" loop autoplay style={{ width: '100%', height: 'auto' }} />
+    </motion.div>
           </div>
         </section>
 
@@ -184,31 +184,45 @@ export default function LandingPage() {
         <section id="places" className="scroll-mt-24 border-y border-slate-200/70 bg-white py-14 dark:border-slate-800 dark:bg-slate-900/40 sm:py-20">
           <Reveal reduce={reduce}>
             <div className="mx-auto max-w-6xl px-4 sm:px-6">
-              <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-brand-600 dark:text-brand-400">
-                Where things turn up
-              </p>
-              <h2 className="mt-2 max-w-2xl font-display text-3xl font-black tracking-tight text-midnight sm:text-4xl dark:text-white">
-                Pinned to a real building, not a vague “the campus”.
-              </h2>
-              <p className="mt-4 max-w-2xl text-base text-slate-500 dark:text-slate-400">
-                Every report is tagged with a building, so nothing sits in the wrong room. Check your
-                spot, search the feed, and leave nothing behind.
-              </p>
-              <ul className="mt-8 grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-4">
-                {BUILDINGS.map((b, i) => (
-                  <motion.li
-                    key={b}
-                    initial={reduce ? false : { opacity: 0, y: 12 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true, margin: '-40px' }}
-                    transition={{ delay: i * 0.03, duration: 0.4 }}
-                    className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-semibold text-slate-600 shadow-sm transition hover:border-brand-300 hover:bg-brand-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-brand-500/40 dark:hover:bg-brand-500/10"
-                  >
-                    <MapPin size={15} className="shrink-0 text-brand-500" />
-                    {b}
-                  </motion.li>
-                ))}
-              </ul>
+              <div className="grid items-center gap-10 lg:grid-cols-[0.85fr_1fr] lg:gap-16">
+                <motion.div
+                  initial={reduce ? false : { opacity: 0, scale: 0.9 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true, margin: '-80px' }}
+                  transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+                  className="relative order-first mx-auto hidden w-fit sm:block lg:order-none"
+                >
+                  <DotLottieReact src="/animation/Sonar_Radar.lottie" loop autoplay style={{ width: 320, height: 320 }} />
+                </motion.div>
+
+                <div className="order-last lg:order-none">
+                  <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-brand-600 dark:text-brand-400">
+                    Where things turn up
+                  </p>
+                  <h2 className="mt-2 max-w-2xl font-display text-3xl font-black tracking-tight text-midnight sm:text-4xl dark:text-white">
+                    Pinned to a real building, not a vague “the campus”.
+                  </h2>
+                  <p className="mt-4 max-w-2xl text-base text-slate-500 dark:text-slate-400">
+                    Every report is tagged with a building, so nothing sits in the wrong room. Check
+                    your spot, search the feed, and leave nothing behind.
+                  </p>
+                  <ul className="mt-8 grid grid-cols-2 gap-2.5 sm:grid-cols-3">
+                    {BUILDINGS.map((b, i) => (
+                      <motion.li
+                        key={b}
+                        initial={reduce ? false : { opacity: 0, y: 12 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true, margin: '-40px' }}
+                        transition={{ delay: i * 0.03, duration: 0.4 }}
+                        className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-semibold text-slate-600 shadow-sm transition hover:border-brand-300 hover:bg-brand-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-brand-500/40 dark:hover:bg-brand-500/10"
+                      >
+                        <MapPin size={15} className="shrink-0 text-brand-500" />
+                        {b}
+                      </motion.li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
             </div>
           </Reveal>
         </section>

@@ -1,5 +1,6 @@
 import { GraduationCap, Camera, Sparkles, KeyRound, QrCode, ShieldCheck, MapPin } from 'lucide-react';
 import { motion, useReducedMotion } from 'framer-motion';
+import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 import SiteNav from '../components/layout/SiteNav';
 import Footer from '../components/landing/Footer';
 
@@ -78,7 +79,7 @@ export default function AboutPage() {
               initial={reduce ? false : { opacity: 0, scale: 0.96 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.7, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
-              className="relative"
+              className="relative hidden lg:block"
             >
               <div className="absolute -inset-6 -rotate-2 rounded-[2rem] border border-brand-200/70 bg-white shadow-2xl dark:border-brand-500/20 dark:bg-slate-900" aria-hidden="true" />
               <img
@@ -102,12 +103,22 @@ export default function AboutPage() {
         {/* ------- HOW IT WORKS ------- */}
         <section className="border-t border-slate-200/70 bg-white py-14 sm:py-20 dark:border-slate-800 dark:bg-slate-900/40">
           <div className="mx-auto max-w-6xl px-4 sm:px-6">
-            <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-brand-600 dark:text-brand-400">
-              Our system
-            </p>
-            <h2 className="mt-2 font-display text-2xl font-black tracking-tight text-midnight sm:text-3xl dark:text-white">
-              How it works
-            </h2>
+            <div className="flex items-center gap-3">
+              <DotLottieReact
+                src="/animation/thinkinganimation.lottie"
+                loop
+                autoplay
+                style={{ width: 100, height: 100 }}
+              />
+              <div>
+                <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-brand-600 dark:text-brand-400">
+                  Our system
+                </p>
+                <h2 className="mt-2 font-display text-2xl font-black tracking-tight text-midnight sm:text-3xl dark:text-white">
+                  How it works
+                </h2>
+              </div>
+            </div>
 
             <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               {HIGHLIGHTS.map((h) => {

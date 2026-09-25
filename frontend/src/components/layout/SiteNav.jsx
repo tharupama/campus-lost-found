@@ -38,7 +38,7 @@ export default function SiteNav() {
       <div className="mx-auto flex max-w-full items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-10">
         <Link to="/" className="flex items-center gap-2.5" aria-label="Ruhuna Lost & Found home">
           <UoRBadge size="md" />
-          <span className="leading-tight">
+          <span className="hidden leading-tight sm:block">
             <span className="block text-sm font-extrabold text-midnight dark:text-white">Ruhuna Lost & Found</span>
             <span className="block text-[11px] text-slate-400">Faculty of Technology</span>
           </span>

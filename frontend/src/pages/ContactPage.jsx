@@ -105,7 +105,7 @@ export default function ContactPage() {
           </div>
         </section>
 
-        <div className="mx-auto max-w-3xl px-4 pb-16 sm:px-6 sm:pb-24">
+        <div className="mx-auto max-w-6xl px-4 pb-16 sm:px-6 sm:pb-24">
 
         <div className="mt-10">
           <p className="mb-2 text-[11px] font-bold uppercase tracking-wide text-slate-400 dark:text-slate-500">
