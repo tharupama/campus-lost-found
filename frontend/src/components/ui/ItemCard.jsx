@@ -19,7 +19,7 @@ export default function ItemCard({ item, onClick }) {
             className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
           />
         ) : (
-          <div className="flex h-full items-center justify-center bg-gradient-to-br from-brand-100 to-violet-100 dark:from-brand-500/20 dark:to-violet-500/20">
+          <div className="flex h-full items-center justify-center bg-gradient-to-br from-brand-100 to-gold-100 dark:from-brand-500/20 dark:to-gold-500/20">
             <ShieldCheck className="text-brand-300" size={40} />
           </div>
         )}

@@ -245,9 +245,9 @@ export default function ReportModal({ open, onClose, type: initialType, prefill 
           <button
             type="button"
             onClick={() => pickType('found')}
-            className="flex w-full items-center gap-4 rounded-2xl border-2 border-slate-200 bg-white p-4 text-left transition hover:border-violet-400 hover:bg-violet-50 dark:border-slate-700 dark:bg-slate-800 dark:hover:border-violet-500 dark:hover:bg-violet-500/10"
+            className="flex w-full items-center gap-4 rounded-2xl border-2 border-slate-200 bg-white p-4 text-left transition hover:border-gold-400 hover:bg-gold-50 dark:border-slate-700 dark:bg-slate-800 dark:hover:border-gold-500 dark:hover:bg-gold-500/10"
           >
-            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-violet-100 text-violet-600 dark:bg-violet-500/15 dark:text-violet-400">
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gold-100 text-gold-700 dark:bg-gold-500/15 dark:text-gold-400">
               <HandCoins size={22} />
             </span>
             <span>

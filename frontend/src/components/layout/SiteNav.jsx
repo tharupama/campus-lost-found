@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
-import { GraduationCap, Menu, X, Sun, Moon, Bell, LogOut, ArrowRight } from 'lucide-react';
+import { Menu, X, Sun, Moon, Bell, LogOut, ArrowRight } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNotifications } from '../../contexts/NotificationContext';
 import { useTheme } from '../../contexts/ThemeContext';
+import UoRBadge from '../ui/UoRBadge';
 
 const BASE_LINKS = [
   { to: '/', label: 'Home', end: true },
@@ -35,14 +36,11 @@ export default function SiteNav() {
   return (
     <header className="sticky top-0 z-40 border-b border-slate-200/70 bg-white/80 backdrop-blur-lg dark:border-slate-800 dark:bg-slate-900/80">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
-        <Link to="/" className="flex items-center gap-2.5" aria-label="CampusLost home">
-          <span className="relative flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-500 to-violet-600 text-white shadow-glow">
-            <GraduationCap size={20} className="text-white" />
-            <span className="absolute -right-1 -top-1 h-3 w-3 rounded-full border-2 border-white bg-amber-400" />
-          </span>
+        <Link to="/" className="flex items-center gap-2.5" aria-label="Ruhuna Lost & Found home">
+          <UoRBadge size="md" />
           <span className="leading-tight">
-            <span className="block text-sm font-extrabold text-midnight dark:text-white">CampusLost</span>
-            <span className="block text-[11px] text-slate-400">University of Ruhuna</span>
+            <span className="block text-sm font-extrabold text-midnight dark:text-white">Ruhuna Lost & Found</span>
+            <span className="block text-[11px] text-slate-400">Faculty of Technology</span>
           </span>
         </Link>
 
@@ -94,7 +92,7 @@ export default function SiteNav() {
               </button>
               <button
                 onClick={() => go('/profile')}
-                className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-brand-100 to-violet-100 text-sm font-extrabold text-brand-600 dark:from-brand-500/20 dark:to-violet-500/20 dark:text-brand-300"
+                className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-brand-100 to-gold-100 text-sm font-extrabold text-brand-600 dark:from-brand-500/20 dark:to-gold-500/20 dark:text-brand-300"
                 aria-label="My profile"
               >
                 {user.avatar ? (
@@ -124,7 +122,7 @@ export default function SiteNav() {
               </button>
               <Link
                 to="/login"
-                className="hidden items-center gap-1.5 rounded-xl bg-gradient-to-br from-brand-600 to-violet-600 px-4 py-2.5 text-sm font-semibold text-white shadow-glow transition hover:from-brand-700 hover:to-violet-700 active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 sm:inline-flex"
+                className="hidden items-center gap-1.5 rounded-xl bg-gradient-to-br from-brand-700 to-gold-600 px-4 py-2.5 text-sm font-semibold text-white shadow-glow transition hover:from-brand-800 hover:to-gold-700 active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 sm:inline-flex"
               >
                 Get started
                 <ArrowRight size={16} />

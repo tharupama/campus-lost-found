@@ -51,9 +51,9 @@
   height: 8px;
 }
 ::-webkit-scrollbar-thumb {
-  background: #c7d2fe;
+  background: #f5cfc5;
   border-radius: 999px;
 }
 .dark ::-webkit-scrollbar-thumb {
-  background: #334155;
+  background: #5c100b;
 }

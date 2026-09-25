@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Lock, Loader2, KeyRound, ShieldCheck, GraduationCap } from 'lucide-react';
+import { Lock, Loader2, KeyRound, ShieldCheck } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { authService } from '../services';
+import UoRBadge from '../components/ui/UoRBadge';
 
 export default function ResetPasswordPage() {
   const [params] = useSearchParams();
@@ -32,7 +33,7 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-brand-800 via-brand-700 to-violet-800 p-4">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-brand-950 via-brand-900 to-brand-700 p-4">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -40,10 +41,10 @@ export default function ResetPasswordPage() {
         className="w-full max-w-md"
       >
         <div className="mb-6 flex flex-col items-center text-center text-white">
-          <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-3xl bg-white/15 backdrop-blur">
-            <GraduationCap size={30} className="text-white" />
+          <div className="mb-4">
+            <UoRBadge size="lg" />
           </div>
-          <h1 className="text-2xl font-black">CampusLost</h1>
+          <h1 className="text-2xl font-black">Ruhuna Lost &amp; Found</h1>
           <p className="mt-1 text-sm text-white/70">Choose a new password</p>
         </div>
 

@@ -44,7 +44,7 @@ export default function BottomNav({ openReport }) {
           className="relative -mt-5 flex flex-col items-center justify-center"
           aria-label="Report item"
         >
-          <span className="flex h-13 w-13 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-500 to-violet-600 text-white shadow-glow">
+          <span className="flex h-13 w-13 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-700 to-gold-600 text-white shadow-glow">
             <Plus size={26} />
           </span>
           <span className="mt-0.5 text-[10px] font-semibold text-slate-400">Report</span>

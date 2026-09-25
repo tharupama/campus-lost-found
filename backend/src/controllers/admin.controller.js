@@ -3,6 +3,7 @@ const Item = require('../models/Item.model');
 const User = require('../models/User.model');
 const Notification = require('../models/Notification.model');
 const { notifyClaimUpdate, notifyItemInVault } = require('../services/notification.service');
+const { processImage, destroyCloudinaryImage } = require('../services/upload.service');
 const { parsePagination, pageMeta } = require('../utils/pagination');
 
 const ROLES = ['student', 'guard', 'admin', 'user'];
@@ -193,6 +194,15 @@ exports.updateItem = async (req, res, next) => {
     }
     if (type === 'found' || secretFeature !== undefined) item.secretFeature = String(secretFeature || '').trim();
 
+    if (req.file) {
+      const newImage = await processImage(req.file);
+      if (newImage && newImage !== item.image) {
+        const oldImage = item.image;
+        item.image = newImage;
+        await destroyCloudinaryImage(oldImage);
+      }
+    }
+
     await item.save();
     res.status(200).json({ item, message: 'Item updated' });
   } catch (err) {
@@ -208,6 +218,10 @@ exports.deleteItem = async (req, res, next) => {
     await Claim.deleteMany({ item: item._id });
     await Notification.deleteMany({ items: item._id });
     await item.deleteOne();
+
+    if (item.image) {
+      await destroyCloudinaryImage(item.image);
+    }
 
     res.status(200).json({ message: 'Item deleted' });
   } catch (err) {

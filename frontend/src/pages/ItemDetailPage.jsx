@@ -83,7 +83,7 @@ export default function ItemDetailPage() {
           {item.image ? (
             <img src={item.image} alt={item.title} className="max-h-[420px] w-full object-cover" />
           ) : (
-            <div className="flex h-56 items-center justify-center bg-gradient-to-br from-brand-100 to-violet-100 dark:from-brand-500/20 dark:to-violet-500/20">
+            <div className="flex h-56 items-center justify-center bg-gradient-to-br from-brand-100 to-gold-100 dark:from-brand-500/20 dark:to-gold-500/20">
               <ShieldCheck className="text-brand-300" size={56} />
             </div>
           )}

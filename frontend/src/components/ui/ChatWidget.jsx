@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+﻿import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Bot, MessageSquare, Send, Sparkles, MapPin, X, ShieldCheck } from 'lucide-react';
@@ -42,7 +42,7 @@ export default function ChatWidget() {
     setMessages([
       {
         role: 'assistant',
-        text: `Hey ${firstName}! 👋 I'm your CampusLost assistant. Tell me what you lost or describe an item you found, and I'll search the database for you.`,
+        text: `Hey ${firstName}! 👋 I'm your Ruhuna Lost & Found assistant. Tell me what you lost or describe an item you found, and I'll search the database for you.`,
       },
     ]);
   }, [firstName, messages.length]);
@@ -102,7 +102,7 @@ export default function ChatWidget() {
         whileTap={{ scale: 0.94 }}
         onClick={openFromLauncher}
         aria-label={open ? 'Close AI assistant' : 'Open AI assistant'}
-        className="fixed right-4 bottom-20 z-50 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-600 to-violet-600 text-white shadow-glow md:bottom-6"
+        className="fixed right-4 bottom-20 z-50 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-700 to-gold-600 text-white shadow-glow md:bottom-6"
       >
         <AnimatePresence mode="wait" initial={false}>
           {open ? (
@@ -132,13 +132,13 @@ export default function ChatWidget() {
             transition={{ duration: 0.22, ease: 'easeOut' }}
             className="fixed inset-x-2 bottom-20 z-50 flex h-[min(76vh,640px)] flex-col overflow-hidden rounded-3xl border border-slate-200/70 bg-white shadow-2xl md:right-6 md:inset-x-auto md:h-[600px] md:w-[400px] dark:border-slate-700 dark:bg-slate-900"
           >
-            <div className="flex items-center gap-3 border-b border-slate-200/70 bg-gradient-to-r from-brand-600 to-violet-600 px-4 py-3 text-white dark:border-slate-700">
+            <div className="flex items-center gap-3 border-b border-slate-200/70 bg-gradient-to-r from-brand-700 to-gold-600 px-4 py-3 text-white dark:border-slate-700">
               <span className="relative flex h-10 w-10 items-center justify-center rounded-2xl bg-white/15">
                 <Bot size={22} />
                 <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-brand-600 bg-emerald-400" />
               </span>
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-extrabold leading-tight">CampusLost Assistant</p>
+                <p className="text-sm font-extrabold leading-tight">Ruhuna Lost & Found Assistant</p>
                 <p className="flex items-center gap-1 text-[11px] text-white/80">
                   <Sparkles size={11} /> AI with live database access
                 </p>
@@ -187,7 +187,7 @@ export default function ChatWidget() {
                                   {item.image ? (
                                     <img src={item.image} alt={item.title} className="h-full w-full object-cover" />
                                   ) : (
-                                    <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-brand-100 to-violet-100 dark:from-brand-500/20 dark:to-violet-500/20">
+                                    <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-brand-100 to-gold-100 dark:from-brand-500/20 dark:to-gold-500/20">
                                       <ShieldCheck className="text-brand-400" size={22} />
                                     </div>
                                   )}
@@ -225,7 +225,7 @@ export default function ChatWidget() {
                     animate={{ opacity: 1, y: 0 }}
                     className="flex justify-end"
                   >
-                    <div className="max-w-[85%] rounded-2xl rounded-tr-md bg-gradient-to-br from-brand-600 to-violet-600 px-3.5 py-2.5 text-sm leading-relaxed text-white shadow-glow">
+                    <div className="max-w-[85%] rounded-2xl rounded-tr-md bg-gradient-to-br from-brand-700 to-gold-600 px-3.5 py-2.5 text-sm leading-relaxed text-white shadow-glow">
                       {m.text}
                     </div>
                   </motion.div>
@@ -283,7 +283,7 @@ export default function ChatWidget() {
                   type="submit"
                   disabled={busy || !input.trim()}
                   aria-label="Send message"
-                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-brand-600 to-violet-600 text-white shadow-glow transition disabled:cursor-not-allowed disabled:opacity-40"
+                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-brand-700 to-gold-600 text-white shadow-glow transition disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   <Send size={18} />
                 </motion.button>

@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+﻿import { useNavigate } from 'react-router-dom';
 import { motion, useReducedMotion } from 'framer-motion';
 import {
   Camera,
@@ -88,7 +88,7 @@ export default function LandingPage() {
         {/* ------- HERO ------- */}
         <section className="relative overflow-hidden">
           <div className="pointer-events-none absolute inset-0" aria-hidden="true">
-            <div className="absolute -top-40 left-1/2 h-[34rem] w-[54rem] -translate-x-1/2 rounded-full bg-gradient-to-br from-brand-200 via-violet-200 to-transparent opacity-70 blur-3xl dark:from-brand-500/20 dark:via-violet-500/15" />
+            <div className="absolute -top-40 left-1/2 h-[34rem] w-[54rem] -translate-x-1/2 rounded-full bg-gradient-to-br from-brand-200 via-gold-200 to-transparent opacity-70 blur-3xl dark:from-brand-500/20 dark:via-gold-500/15" />
             <div
               className="absolute inset-0 opacity-[0.04] dark:opacity-[0.06]"
               style={{
@@ -108,10 +108,10 @@ export default function LandingPage() {
             >
               <span className="inline-flex items-center gap-2 rounded-full border border-brand-200 bg-white px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-wide text-brand-700 shadow-sm dark:border-brand-500/30 dark:bg-slate-900 dark:text-brand-300">
                 <span className="relative flex h-2 w-2">
-                  <span className="absolute h-full w-full animate-ping rounded-full bg-amber-400 opacity-70" />
-                  <span className="h-2 w-2 rounded-full bg-amber-400" />
+                  <span className="absolute h-full w-full animate-ping rounded-full bg-gold-500 opacity-70" />
+                  <span className="h-2 w-2 rounded-full bg-gold-500" />
                 </span>
-                University of Ruhuna · Lost &amp; Found
+                Faculty of Technology · University of Ruhuna
               </span>
 
               <h1 className="mt-5 font-display text-5xl font-black leading-[1.02] tracking-tight text-midnight dark:text-white sm:text-6xl">
@@ -239,7 +239,7 @@ export default function LandingPage() {
                         className="group h-full rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-brand-300 hover:shadow-card dark:border-slate-800 dark:bg-slate-900"
                       >
                         <div className="flex items-center justify-between">
-                          <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-100 to-violet-100 text-brand-600 transition group-hover:from-brand-500 group-hover:to-violet-600 group-hover:text-white dark:from-brand-500/15 dark:to-violet-500/15 dark:text-brand-300">
+                          <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-100 to-gold-100 text-brand-600 transition group-hover:from-brand-700 group-hover:to-gold-600 group-hover:text-white dark:from-brand-500/15 dark:to-gold-500/15 dark:text-brand-300">
                             <Icon size={22} />
                           </span>
                           <span className="font-display text-4xl font-black text-slate-100 dark:text-slate-800">
@@ -311,7 +311,7 @@ export default function LandingPage() {
                   className="pointer-events-none absolute inset-0"
                   aria-hidden="true"
                   style={{
-                    backgroundImage: 'radial-gradient(circle, rgba(99,102,241,0.4) 1px, transparent 1px)',
+                    backgroundImage: 'radial-gradient(circle, rgba(243,182,25,0.35) 1px, transparent 1px)',
                     backgroundSize: '26px 26px',
                   }}
                 />
@@ -330,7 +330,7 @@ export default function LandingPage() {
                   <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
                     <button
                       onClick={() => go('/feed?type=lost')}
-                      className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-br from-brand-500 to-violet-500 px-6 py-3.5 text-base font-semibold text-white shadow-glow transition hover:from-brand-600 hover:to-violet-600 active:scale-[0.98]"
+                      className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-br from-brand-700 to-gold-600 px-6 py-3.5 text-base font-semibold text-white shadow-glow transition hover:from-brand-800 hover:to-gold-700 active:scale-[0.98]"
                     >
                       Report a lost item
                       <ArrowRight size={18} />

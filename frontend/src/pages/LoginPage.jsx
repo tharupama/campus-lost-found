@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Mail, Lock, UserRound, Loader2, ShieldCheck, Building2, GraduationCap } from 'lucide-react';
+import { Mail, Lock, UserRound, Loader2, ShieldCheck, Building2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuth } from '../contexts/AuthContext';
 import { DEMO_ACCOUNTS, GOOGLE_CLIENT_ID } from '../config/constants';
+import UoRBadge from '../components/ui/UoRBadge';
 
 export default function LoginPage() {
   const { login, register, googleLogin } = useAuth();
@@ -116,7 +117,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-brand-800 via-brand-700 to-violet-800 p-4">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-brand-950 via-brand-900 to-brand-700 p-4">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -126,14 +127,14 @@ export default function LoginPage() {
         <div className="mb-6 flex flex-col items-center text-center text-white">
           <motion.div
             whileHover={{ rotate: -4, scale: 1.05 }}
-            className="mb-4 flex h-16 w-16 items-center justify-center rounded-3xl bg-white/15 backdrop-blur"
+            className="mb-4"
           >
-            <GraduationCap size={30} className="text-white" />
+            <UoRBadge size="lg" />
           </motion.div>
-          <h1 className="text-2xl font-black">LOST AND FOUND SYSTEM</h1>
+          <h1 className="text-2xl font-black">RUHUNA LOST &amp; FOUND</h1>
           <p className="mt-1 flex items-center gap-1.5 text-sm text-white/70">
             <Building2 size={15} />
-            {'University Of Ruhuna'}
+            {'Faculty of Technology · University of Ruhuna'}
           </p>
         </div>
 

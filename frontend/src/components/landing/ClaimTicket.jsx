@@ -1,4 +1,4 @@
-import { motion, useReducedMotion } from 'framer-motion';
+﻿import { motion, useReducedMotion } from 'framer-motion';
 import { QrCode, MapPin, BellRing } from 'lucide-react';
 
 export default function ClaimTicket() {
@@ -6,7 +6,7 @@ export default function ClaimTicket() {
 
   return (
     <div className="relative mx-auto w-full max-w-sm select-none" aria-hidden="true">
-      <div className="absolute -inset-8 rounded-[3rem] bg-gradient-to-br from-brand-200 via-violet-200 to-amber-100 opacity-70 blur-2xl dark:from-brand-500/25 dark:via-violet-500/25 dark:to-amber-400/10" />
+      <div className="absolute -inset-8 rounded-[3rem] bg-gradient-to-br from-brand-200 via-gold-200 to-amber-100 opacity-70 blur-2xl dark:from-brand-500/25 dark:via-gold-500/25 dark:to-amber-400/10" />
 
       <motion.div
         initial={reduce ? false : { opacity: 0, y: 48, rotate: 4 }}
@@ -21,10 +21,10 @@ export default function ClaimTicket() {
           <div className="flex items-start justify-between gap-4">
             <div>
               <p className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-brand-600 dark:text-brand-400">
-                Campus Lost &amp; Found
+                Ruhuna Lost &amp; Found
               </p>
               <p className="mt-1 font-ticket text-[10px] uppercase tracking-widest text-slate-400">
-                University of Ruhuna
+                Faculty of Technology
               </p>
             </div>
             <span className="rounded-lg bg-slate-900 px-2 py-1 font-ticket text-[11px] font-bold tracking-wider text-white dark:bg-slate-100 dark:text-slate-900">
@@ -48,7 +48,7 @@ export default function ClaimTicket() {
               label="Status"
               value={
                 <span className="inline-flex items-center gap-1.5 font-bold">
-                  <span className="h-2 w-2 rounded-full bg-amber-400" />
+                  <span className="h-2 w-2 rounded-full bg-gold-500" />
                   Matched · pending pickup
                 </span>
               }

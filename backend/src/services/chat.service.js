@@ -42,7 +42,7 @@ const TOOL_SEARCH_ITEMS = {
   },
 };
 
-const SYSTEM_PROMPT = `You are "CampusLost Assistant", a friendly AI assistant for the University of Ruhuna campus lost & found platform.
+const SYSTEM_PROMPT = `You are "Ruhuna Lost & Found Assistant", a friendly AI assistant for the Faculty of Technology, University of Ruhuna lost & found platform.
 
 Your job:
 - Help students, staff, guards and admins find lost or found items, submit claims, report items, and understand how the platform works.

@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import UoRBadge from '../ui/UoRBadge';
 
 export default function Footer() {
   return (
@@ -7,14 +8,12 @@ export default function Footer() {
         <div className="flex flex-col gap-8 md:flex-row md:items-start md:justify-between">
           <div className="max-w-sm">
             <Link to="/" className="inline-flex items-center gap-2.5">
-              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-brand-500 to-violet-600 text-white">
-                <span className="text-lg font-black">U</span>
-              </span>
-              <span className="text-sm font-extrabold text-midnight dark:text-white">CampusLost</span>
+              <UoRBadge size="sm" />
+              <span className="text-sm font-extrabold text-midnight dark:text-white">Ruhuna Lost & Found</span>
             </Link>
             <p className="mt-3 text-sm leading-relaxed text-slate-500 dark:text-slate-400">
-              The campus lost &amp; found for University of Ruhuna — report, match, and hand
-              things back where they belong.
+              The lost &amp; found for the Faculty of Technology, University of Ruhuna — report,
+              match, and hand things back where they belong.
             </p>
           </div>
           <div className="grid grid-cols-2 gap-10 sm:grid-cols-3">
@@ -41,7 +40,7 @@ export default function Footer() {
           </div>
         </div>
         <div className="mt-10 flex flex-col items-center justify-between gap-2 border-t border-slate-200/70 pt-6 text-xs text-slate-400 sm:flex-row dark:border-slate-800 dark:text-slate-500">
-          <p>© {new Date().getFullYear()} University of Ruhuna · Campus Lost &amp; Found</p>
+          <p>© {new Date().getFullYear()} Faculty of Technology · University of Ruhuna · Ruhuna Lost &amp; Found</p>
           <p>Made for the campus community.</p>
         </div>
       </div>

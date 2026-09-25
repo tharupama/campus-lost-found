@@ -37,10 +37,10 @@ export default function AboutPage() {
           A lost item isn’t lost forever.
         </h1>
         <p className="mt-6 text-base leading-relaxed text-slate-600 dark:text-slate-300">
-          CampusLost is the lost &amp; found system for the University of Ruhuna. Every day, things
-          get misplaced across the campus — a library card in the Library, a laptop charger in an
-          Engineering Block lab, keys on the way to Hostel A. Most of them are found, but matching
-          what was lost with what was found used to depend on luck and noticeboards.
+          Ruhuna Lost &amp; Found is the lost &amp; found system for the Faculty of Technology,
+          University of Ruhuna. Every day, things get misplaced on campus — a library card, a laptop
+          charger in an Engineering Block lab, keys on the way to Hostel A. Most of them are found,
+          but matching what was lost with what was found used to depend on luck and noticeboards.
         </p>
         <p className="mt-4 text-base leading-relaxed text-slate-600 dark:text-slate-300">
           This system ties the whole loop together. Students and staff report items in under a
@@ -77,7 +77,7 @@ export default function AboutPage() {
 
         <div className="mt-12 flex items-center gap-3 text-sm text-slate-400 dark:text-slate-500">
           <GraduationCap size={18} className="text-brand-500" />
-          University of Ruhuna · Matara
+          Faculty of Technology · University of Ruhuna · Matara
         </div>
       </main>
       <Footer />

@@ -117,7 +117,7 @@ export default function ContactPage() {
                   <span
                     className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl transition ${
                       active
-                        ? 'bg-gradient-to-br from-brand-500 to-violet-600 text-white'
+                        ? 'bg-gradient-to-br from-brand-700 to-gold-600 text-white'
                         : 'bg-brand-100 text-brand-600 dark:bg-brand-500/15 dark:text-brand-300'
                     }`}
                   >

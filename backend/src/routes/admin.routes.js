@@ -14,6 +14,7 @@ const {
   deleteItem,
 } = require('../controllers/admin.controller');
 const { protect, authorize } = require('../middleware/auth.middleware');
+const upload = require('../middleware/upload.middleware');
 
 router.use(protect, authorize('admin', 'guard'));
 
@@ -29,7 +30,7 @@ router.put('/users/:id', authorize('admin'), updateUser);
 router.delete('/users/:id', authorize('admin'), deleteUser);
 
 router.get('/items', authorize('admin'), getAllItems);
-router.put('/items/:id', authorize('admin'), updateItem);
+router.put('/items/:id', authorize('admin'), upload.single('image'), updateItem);
 router.delete('/items/:id', authorize('admin'), deleteItem);
 
 module.exports = router;

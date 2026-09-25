@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import { useDebouncedCallback } from 'use-debounce';
 import { ShieldCheck, HandCoins, Archive, ScanLine, Check, X, QrCode, KeyRound, Loader2, PackageCheck, PackageX, Users, UserPlus, Pencil, Trash2, Search, Package, Phone } from 'lucide-react';
 import { format, formatDistanceToNow } from 'date-fns';
@@ -60,6 +60,7 @@ export default function AdminPage() {
   const [itemSearch, setItemSearch] = useState('');
   const [editingItem, setEditingItem] = useState(null);
   const [itemForm, setItemForm] = useState({});
+  const [itemImageFile, setItemImageFile] = useState(null);
   const [savingItem, setSavingItem] = useState(false);
 
   const [claimsPage, setClaimsPage] = useState(1);
@@ -192,6 +193,7 @@ export default function AdminPage() {
   }, 350);
 
   function openEditItem(item) {
+    setItemImageFile(null);
     setEditingItem(item);
     setItemForm({
       title: item.title || '',
@@ -213,7 +215,7 @@ export default function AdminPage() {
     }
     setSavingItem(true);
     try {
-      const { message } = await adminService.updateItem(editingItem._id, {
+      const fields = {
         title: itemForm.title.trim(),
         description: itemForm.description.trim(),
         category: itemForm.category,
@@ -223,7 +225,17 @@ export default function AdminPage() {
         status: itemForm.status,
         handoverStatus: itemForm.type === 'found' ? itemForm.handoverStatus : undefined,
         secretFeature: itemForm.type === 'found' ? itemForm.secretFeature.trim() : undefined,
-      });
+      };
+      let payload = fields;
+      if (itemImageFile) {
+        const fd = new FormData();
+        Object.entries(fields).forEach(([k, v]) => {
+          if (v !== undefined && v !== null && v !== '') fd.append(k, v);
+        });
+        fd.append('image', itemImageFile);
+        payload = fd;
+      }
+      const { message } = await adminService.updateItem(editingItem._id, payload);
       toast.success(message || 'Item updated');
       setEditingItem(null);
       await loadItems();
@@ -488,7 +500,7 @@ export default function AdminPage() {
           <>
             <div className="mb-5 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-600 to-violet-600 text-white shadow-glow">
+                <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-700 to-gold-600 text-white shadow-glow">
                   <ShieldCheck size={20} />
                 </span>
                 <div>
@@ -767,7 +779,7 @@ export default function AdminPage() {
         ) : section === 'items' ? (
           <>
             <div className="mb-5 flex items-center gap-3">
-              <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500 to-brand-600 text-white shadow-glow">
+              <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-gold-600 to-brand-700 text-white shadow-glow">
                 <Package size={20} />
               </span>
               <div>
@@ -799,7 +811,7 @@ export default function AdminPage() {
                       {item.image ? (
                         <img src={item.image} alt={item.title} className="h-full w-full object-cover" />
                       ) : (
-                        <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-brand-100 to-violet-100 dark:from-brand-500/20 dark:to-violet-500/20">
+                        <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-brand-100 to-gold-100 dark:from-brand-500/20 dark:to-gold-500/20">
                           <Package className="text-brand-300" size={32} />
                         </div>
                       )}
@@ -888,7 +900,7 @@ export default function AdminPage() {
             <div className="grid gap-3 sm:grid-cols-2">
               {allUsers.map((u) => (
                 <div key={u._id} className="flex items-center gap-3 rounded-2xl bg-white p-4 shadow-card dark:bg-slate-900">
-                  <span className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-brand-100 to-violet-100 text-sm font-extrabold text-brand-600 dark:from-brand-500/20 dark:to-violet-500/20 dark:text-brand-300">
+                  <span className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-brand-100 to-gold-100 text-sm font-extrabold text-brand-600 dark:from-brand-500/20 dark:to-gold-500/20 dark:text-brand-300">
                     {u.avatar ? (
                       <img src={u.avatar} alt={u.name} className="h-full w-full object-cover" />
                     ) : (
@@ -1074,6 +1086,16 @@ export default function AdminPage() {
           </div>
           <Field label="Description">
             <textarea className="input-field min-h-24 resize-none" value={itemForm.description} onChange={(e) => setItemForm({ ...itemForm, description: e.target.value })} />
+          </Field>
+          <Field label="Photo" hint="Leave empty to keep the current photo">
+            <input type="file" accept="image/*" className="input-field cursor-pointer" onChange={(e) => setItemImageFile(e.target.files[0] || null)} />
+            {(itemImageFile || editingItem?.image) && (
+              <img
+                src={itemImageFile ? URL.createObjectURL(itemImageFile) : editingItem.image}
+                alt="Current item"
+                className="mt-2 h-24 w-full rounded-xl object-cover"
+              />
+            )}
           </Field>
           {itemForm.type === 'found' && (
             <Field label="Secret Mark" hint="Visible to admins & security only — used to verify claims">

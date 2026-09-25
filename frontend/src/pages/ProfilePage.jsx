@@ -150,7 +150,7 @@ export default function ProfilePage() {
   return (
     <div className="mx-auto max-w-6xl px-4 pb-28 pt-4 md:pb-10">
       <div className="mb-5 flex items-center gap-3">
-        <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-600 to-violet-600 text-white shadow-glow">
+        <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-700 to-gold-600 text-white shadow-glow">
           <UserRound size={20} />
         </span>
         <div>
