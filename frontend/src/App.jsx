@@ -18,6 +18,9 @@ import AdminPage from './pages/AdminPage';
 import UnauthorizedPage from './pages/UnauthorizedPage';
 import ProfilePage from './pages/ProfilePage';
 import Spinner from './components/ui/Spinner';
+import ChatWidget from './components/ui/ChatWidget';
+
+const AUTH_PATHS = ['/login', '/forgot-password', '/reset-password'];
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -25,6 +28,12 @@ function ScrollToTop() {
     window.scrollTo(0, 0);
   }, [pathname]);
   return null;
+}
+
+function ChatGate() {
+  const { pathname } = useLocation();
+  if (AUTH_PATHS.includes(pathname)) return null;
+  return <ChatWidget />;
 }
 
 function LoginGate({ children }) {
@@ -94,6 +103,7 @@ export default function App() {
             </Route>
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
+          <ChatGate />
           <Toaster
             position="top-center"
             toastOptions={{

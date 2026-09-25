@@ -87,6 +87,13 @@ export const contactService = {
   },
 };
 
+export const chatService = {
+  async send(messages) {
+    const { data } = await api.post('/chat', { messages });
+    return data;
+  },
+};
+
 export const adminService = {
   async getClaims(status = '', search = '', page = 1, pageSize = 10) {
     const { data } = await api.get('/admin/claims', { params: { ...(status ? { status } : {}), ...(search ? { search } : {}), page, pageSize } });
