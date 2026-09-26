@@ -1,7 +1,7 @@
 ﻿import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useDebouncedCallback } from 'use-debounce';
-import { ShieldCheck, HandCoins, Archive, ScanLine, Check, X, QrCode, KeyRound, Loader2, PackageCheck, PackageX, Users, UserPlus, Pencil, Trash2, Search, Package, Phone, MessageSquareQuote, LayoutDashboard } from 'lucide-react';
+import { ShieldCheck, HandCoins, Archive, ScanLine, Check, X, QrCode, KeyRound, Loader2, Menu, PackageCheck, PackageX, Users, UserPlus, Pencil, Trash2, Search, Package, Phone, MessageSquareQuote, LayoutDashboard } from 'lucide-react';
 import { format, formatDistanceToNow } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
 import { QRCodeSVG } from 'qrcode.react';
@@ -33,6 +33,15 @@ const ROLE_BADGE = {
 
 const SECTIONS = ['overview', 'security', 'items', 'users', 'feedback'];
 const ADMIN_ONLY_SECTIONS = ['items', 'users', 'feedback'];
+
+// One source of truth for the sidebar, the mobile drawer and the mobile title bar.
+const SECTION_NAV = [
+  { key: 'overview', icon: LayoutDashboard, label: 'Overview', hint: 'How the lost & found desk is performing' },
+  { key: 'security', icon: ShieldCheck, label: 'Security Panel', hint: 'Claim review · vault · QR handover', count: 'pending' },
+  { key: 'items', icon: Package, label: 'Item Management', hint: 'Edit details · secret marks · delete items', adminOnly: true },
+  { key: 'users', icon: Users, label: 'User Management', hint: 'Manage accounts · create, update & delete', adminOnly: true },
+  { key: 'feedback', icon: MessageSquareQuote, label: 'Student Feedback', hint: 'Read and triage student messages', count: 'feedback', adminOnly: true },
+];
 
 export default function AdminPage() {
   const { user } = useAuth();
@@ -76,6 +85,7 @@ export default function AdminPage() {
   const [itemForm, setItemForm] = useState({});
   const [itemImageFile, setItemImageFile] = useState(null);
   const [savingItem, setSavingItem] = useState(false);
+  const [navOpen, setNavOpen] = useState(false);
 
   const [claimsPage, setClaimsPage] = useState(1);
   const [claimsPageSize, setClaimsPageSize] = useState(10);
@@ -108,6 +118,28 @@ export default function AdminPage() {
   const [feedbackTotal, setFeedbackTotal] = useState(0);
   const [feedbackTotalPages, setFeedbackTotalPages] = useState(1);
   const [newFeedbackCount, setNewFeedbackCount] = useState(0);
+
+  const navSections = SECTION_NAV.filter((s) => !s.adminOnly || isAdmin);
+  const activeSection = SECTION_NAV.find((s) => s.key === section) || SECTION_NAV[0];
+  const countFor = (key) => (key === 'pending' ? pendingCount : key === 'feedback' ? newFeedbackCount : 0);
+  const activeCount = countFor(activeSection.count);
+
+  const goSection = (key) => {
+    setSection(key);
+    setNavOpen(false);
+  };
+
+  useEffect(() => {
+    if (!navOpen) return undefined;
+    const onKey = (e) => e.key === 'Escape' && setNavOpen(false);
+    window.addEventListener('keydown', onKey);
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [navOpen]);
 
   const pendingDropOffs = vault.filter((i) => i.type === 'found' && i.handoverStatus !== 'in_vault');
   const vaultItems = vault.filter((i) => !pendingDropOffs.includes(i));
@@ -555,86 +587,106 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="pb-28 pt-4 px-4 md:pb-10 md:pr-6 md:pl-72 lg:pr-8">
+    <div className="px-4 pb-28 md:pb-10 md:pl-72 md:pr-6 md:pt-4 lg:pr-8">
       <aside className="fixed left-0 top-16 z-30 hidden h-[calc(100vh-4rem)] w-60 flex-col gap-1.5 overflow-y-auto border-r border-brand-800/70 bg-brand-950 p-3 md:flex">
-        <SideBtn
-          active={section === 'overview'}
-          onClick={() => setSection('overview')}
-          icon={LayoutDashboard}
-          label="Overview"
-        />
-        <SideBtn
-          active={section === 'security'}
-          onClick={() => setSection('security')}
-          icon={ShieldCheck}
-          label="Security Panel"
-          badge={pendingCount}
-        />
-        {isAdmin && (
+        {navSections.map((s) => (
           <SideBtn
-            active={section === 'items'}
-            onClick={() => setSection('items')}
-            icon={Package}
-            label="Item Management"
+            key={s.key}
+            active={section === s.key}
+            onClick={() => setSection(s.key)}
+            icon={s.icon}
+            label={s.label}
+            badge={countFor(s.count)}
           />
-        )}
-        {isAdmin && (
-          <SideBtn
-            active={section === 'users'}
-            onClick={() => setSection('users')}
-            icon={Users}
-            label="User Management"
-          />
-        )}
-        {isAdmin && (
-          <SideBtn
-            active={section === 'feedback'}
-            onClick={() => setSection('feedback')}
-            icon={MessageSquareQuote}
-            label="Feedback"
-            badge={newFeedbackCount}
-          />
-        )}
+        ))}
         <p className="mt-auto px-2 pt-3 text-[11px] font-medium text-brand-300/70">Claims · vault · QR handover · accounts</p>
       </aside>
 
-      <div className="min-w-0">
-        <div className="mb-5 flex gap-2 rounded-2xl bg-white p-1.5 shadow-card dark:bg-slate-900 md:hidden">
-          {[
-            { key: 'overview', icon: LayoutDashboard, label: 'Overview' },
-            { key: 'security', icon: ShieldCheck, label: 'Security' },
-            ...(isAdmin ? [{ key: 'items', icon: Package, label: 'Items' }] : []),
-            ...(isAdmin ? [{ key: 'users', icon: Users, label: 'Users' }] : []),
-            ...(isAdmin ? [{ key: 'feedback', icon: MessageSquareQuote, label: 'Feedback' }] : []),
-          ].map((t) => (
-            <button
-              key={t.key}
-              onClick={() => setSection(t.key)}
-              className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl py-2.5 text-xs font-bold transition ${
-                section === t.key ? 'bg-brand-600 text-white shadow-card' : 'text-slate-500 hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-800'
-              }`}
-            >
-              <t.icon size={16} />
-              {t.label}
-              {t.key === 'security' && pendingCount > 0 && (
-                <span className={`flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] ${section === t.key ? 'bg-white text-brand-600' : 'bg-rose-500 text-white'}`}>
-                  {pendingCount}
-                </span>
-              )}
-              {t.key === 'feedback' && newFeedbackCount > 0 && (
-                <span className={`flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] ${section === t.key ? 'bg-white text-brand-600' : 'bg-rose-500 text-white'}`}>
-                  {newFeedbackCount}
-                </span>
-              )}
-            </button>
-          ))}
+      <div className="sticky top-16 z-30 -mx-4 mb-4 flex items-center gap-3 border-b border-slate-200/70 bg-white/90 px-4 py-2.5 backdrop-blur-lg md:hidden dark:border-slate-800 dark:bg-slate-950/90">
+        <button
+          onClick={() => setNavOpen(true)}
+          aria-label="Open admin menu"
+          aria-expanded={navOpen}
+          aria-controls="admin-drawer"
+          className="-ml-1.5 shrink-0 rounded-xl p-2 text-slate-600 transition hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+        >
+          <Menu size={20} />
+        </button>
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm font-extrabold text-midnight dark:text-white">{activeSection.label}</p>
+          <p className="truncate text-[11px] text-slate-400 dark:text-slate-500">{activeSection.hint}</p>
         </div>
+        {activeCount > 0 && (
+          <span className="flex shrink-0 items-center rounded-full bg-rose-500 px-2 py-0.5 text-[10px] font-extrabold text-white">
+            {activeCount} {activeSection.count === 'feedback' ? 'new' : 'pending'}
+          </span>
+        )}
+      </div>
 
+      <AnimatePresence>
+        {navOpen && (
+          <>
+            <motion.div
+              key="admin-nav-scrim"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              onClick={() => setNavOpen(false)}
+              className="fixed inset-0 z-40 bg-midnight/60 backdrop-blur-sm md:hidden"
+            />
+            <motion.aside
+              key="admin-drawer"
+              id="admin-drawer"
+              role="dialog"
+              aria-modal="true"
+              aria-label="Admin sections"
+              initial={{ x: '-100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '-100%' }}
+              transition={{ type: 'tween', ease: 'easeOut', duration: 0.24 }}
+              className="fixed inset-y-0 left-0 z-50 flex w-72 max-w-[85vw] flex-col border-r border-brand-800/70 bg-brand-950 shadow-2xl md:hidden"
+            >
+              <div className="flex items-center justify-between gap-3 border-b border-brand-800/70 px-4 py-4">
+                <div className="min-w-0">
+                  <p className="text-[11px] font-bold uppercase tracking-wide text-gold-500">Admin desk</p>
+                  <p className="truncate text-sm font-extrabold text-white">{activeSection.label}</p>
+                </div>
+                <button
+                  onClick={() => setNavOpen(false)}
+                  aria-label="Close admin menu"
+                  className="shrink-0 rounded-xl p-2 text-brand-200 transition hover:bg-brand-800"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              <nav className="flex flex-1 flex-col gap-1.5 overflow-y-auto p-3">
+                {navSections.map((s) => (
+                  <SideBtn
+                    key={s.key}
+                    active={section === s.key}
+                    onClick={() => goSection(s.key)}
+                    icon={s.icon}
+                    label={s.label}
+                    badge={countFor(s.count)}
+                  />
+                ))}
+                <p className="mt-auto px-2 pt-3 text-[11px] font-medium text-brand-300/70">
+                  Claims · vault · QR handover · accounts
+                </p>
+              </nav>
+            </motion.aside>
+          </>
+        )}
+      </AnimatePresence>
+
+      <div className="min-w-0">
         {section === 'overview' ? (
           <OverviewPanel />
         ) : section === 'security' ? (
           <>
-            <div className="mb-5 flex items-center justify-between">
+            <div className="mb-5 hidden items-center justify-between md:flex">
               <div className="flex items-center gap-3">
                 <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-700 to-gold-600 text-white shadow-glow">
                   <ShieldCheck size={20} />
@@ -914,7 +966,7 @@ export default function AdminPage() {
       </>
         ) : section === 'items' ? (
           <>
-            <div className="mb-5 flex items-center gap-3">
+            <div className="mb-5 hidden items-center gap-3 md:flex">
               <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-gold-600 to-brand-700 text-white shadow-glow">
                 <Package size={20} />
               </span>
@@ -999,7 +1051,7 @@ export default function AdminPage() {
           </>
         ) : section === 'feedback' ? (
           <>
-            <div className="mb-5 flex items-center justify-between gap-3">
+            <div className="mb-4 hidden items-center justify-between gap-3 md:mb-5 md:flex">
               <div className="flex items-center gap-3">
                 <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500 to-brand-600 text-white shadow-glow">
                   <MessageSquareQuote size={20} />
@@ -1082,8 +1134,8 @@ export default function AdminPage() {
           </>
         ) : (
           <>
-            <div className="mb-5 flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
+            <div className="mb-4 flex items-center justify-end gap-3 md:mb-5 md:justify-between">
+              <div className="hidden items-center gap-3 md:flex">
                 <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-500 to-rose-500 text-white shadow-glow">
                   <Users size={20} />
                 </span>

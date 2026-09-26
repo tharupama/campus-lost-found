@@ -88,8 +88,8 @@ export default function OverviewPanel() {
 
   return (
     <div className="space-y-4">
-      <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
+      <div className="mb-5 flex flex-wrap items-center justify-end gap-3 md:justify-between">
+        <div className="hidden items-center gap-3 md:flex">
           <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-700 to-gold-600 text-white shadow-glow">
             <LayoutDashboard size={20} />
           </span>
