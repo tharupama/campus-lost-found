@@ -1,4 +1,5 @@
 const Claim = require('../models/Claim.model');
+const Feedback = require('../models/Feedback.model');
 const Item = require('../models/Item.model');
 const User = require('../models/User.model');
 const Notification = require('../models/Notification.model');
@@ -9,6 +10,14 @@ const { parsePagination, pageMeta } = require('../utils/pagination');
 const ROLES = ['student', 'guard', 'admin', 'user'];
 const ITEM_STATUSES = ['active', 'claimed', 'resolved'];
 const HANDOVER_STATUSES = ['pending', 'in_vault'];
+const FEEDBACK_STATUSES = ['new', 'reviewed'];
+const FEEDBACK_CATEGORIES = ['bug', 'feature', 'usability', 'content', 'other'];
+
+// User-supplied search text is matched literally, so a stray "(" or "[" cannot
+// produce an invalid $regex and turn a search into a 500.
+function escapeRegExp(value) {
+  return String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
 
 exports.getUsers = async (req, res, next) => {
   try {
@@ -394,6 +403,89 @@ exports.handover = async (req, res, next) => {
       claim,
       message: 'Handover verified. Item marked as resolved.',
     });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.getFeedback = async (req, res, next) => {
+  try {
+    const status = String(req.query.status || '').trim();
+    const category = String(req.query.category || '').trim();
+    const q = String(req.query.search || '').trim();
+
+    const filter = {};
+    if (FEEDBACK_STATUSES.includes(status)) filter.status = status;
+    if (FEEDBACK_CATEGORIES.includes(category)) filter.category = category;
+    if (q) {
+      // `user` is an ObjectId ref, so Mongo cannot match "user.name" / "user.email"
+      // inside find() the way it can on already-populated documents. Resolve the
+      // matching students to ids first, then constrain the ref itself.
+      const rx = new RegExp(escapeRegExp(q), 'i');
+      const matchedUsers = await User.find({ $or: [{ name: rx }, { email: rx }] }).select('_id');
+      const userIds = matchedUsers.map((u) => u._id);
+      filter.$or = [
+        { message: rx },
+        ...(userIds.length ? [{ user: { $in: userIds } }] : []),
+      ];
+    }
+
+    const { page, pageSize, skip, limit } = parsePagination(req.query, 10, 100);
+    const feedback = await Feedback.find(filter)
+      .populate('user', 'name email role avatar')
+      .populate('reviewedBy', 'name role')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    const total = await Feedback.countDocuments(filter);
+    const [aggregate] = await Feedback.aggregate([
+      { $group: { _id: null, count: { $sum: 1 } } },
+    ]);
+
+    res.status(200).json({
+      feedback,
+      total,
+      summary: {
+        count: aggregate?.count || 0,
+      },
+      ...pageMeta(total, page, pageSize),
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.updateFeedback = async (req, res, next) => {
+  try {
+    const feedback = await Feedback.findById(req.params.id);
+    if (!feedback) return res.status(404).json({ message: 'Feedback not found' });
+
+    const status = String(req.body.status || '').trim();
+    if (!FEEDBACK_STATUSES.includes(status)) {
+      return res.status(400).json({ message: 'Invalid status' });
+    }
+
+    feedback.status = status;
+    feedback.reviewedBy = status === 'reviewed' ? req.user._id : null;
+    feedback.reviewedAt = status === 'reviewed' ? new Date() : null;
+    await feedback.save();
+
+    const populated = await feedback.populate('user', 'name email role avatar');
+    res.status(200).json({ feedback: populated, message: `Feedback marked as ${status}` });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.deleteFeedback = async (req, res, next) => {
+  try {
+    const feedback = await Feedback.findById(req.params.id);
+    if (!feedback) return res.status(404).json({ message: 'Feedback not found' });
+
+    await Notification.deleteMany({ feedback: feedback._id });
+    await feedback.deleteOne();
+    res.status(200).json({ message: 'Feedback deleted' });
   } catch (err) {
     next(err);
   }

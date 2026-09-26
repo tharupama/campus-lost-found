@@ -3,7 +3,7 @@ import UoRBadge from '../ui/UoRBadge';
 
 export default function Footer() {
   return (
-    <footer className="border-t border-slate-200/70 bg-white py-10 dark:border-slate-800 dark:bg-slate-900/40">
+    <footer className="border-t border-slate-200/70 bg-white pb-24 pt-10 md:pb-10 dark:border-slate-800 dark:bg-slate-900/40">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <div className="flex flex-col gap-8 md:flex-row md:items-start md:justify-between">
           <div className="max-w-sm">

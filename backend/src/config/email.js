@@ -30,11 +30,14 @@ function createTransporter() {
       user: process.env.EMAIL_USERNAME || process.env.SMTP_USER,
       pass: process.env.EMAIL_PASSWORD || process.env.SMTP_PASS,
     },
+    connectionTimeout: 10000,
+    greetingTimeout: 10000,
+    socketTimeout: 20000,
   });
   return transporter;
 }
 
-async function sendMail({ to, subject, html, text }) {
+async function sendMail({ to, subject, html, text, replyTo }) {
   try {
     const t = createTransporter();
     if (!t) {
@@ -44,7 +47,9 @@ async function sendMail({ to, subject, html, text }) {
     const senderEmail = process.env.SENDER_EMAIL || 'no-reply@campuslost.local';
     const senderName = process.env.SENDER_NAME || 'CampusLost';
     const from = `"${senderName}" <${senderEmail}>`;
-    const info = await t.sendMail({ from, to, subject, html, text });
+    const dest = { from, to, subject, html, text };
+    if (replyTo) dest.replyTo = replyTo;
+    const info = await t.sendMail(dest);
     console.log(`[mail] sent -> ${to}: "${subject}" (${info.messageId})`);
     return info;
   } catch (err) {

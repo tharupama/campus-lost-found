@@ -20,7 +20,8 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
 
   function redirectTarget(user) {
-    if (next && next.startsWith('/feed')) return next;
+    // Only same-origin absolute paths, so `next` can never bounce off-site.
+    if (next && /^\/(?!\/)/.test(next)) return next;
     if (user.role === 'guard') return '/guard';
     return user.role === 'student' ? '/feed' : '/admin';
   }

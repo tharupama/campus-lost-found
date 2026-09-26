@@ -16,6 +16,7 @@ import SiteNav from '../components/layout/SiteNav';
 import Footer from '../components/landing/Footer';
 import { BUILDINGS } from '../config/constants';
 import { useAuth } from '../contexts/AuthContext';
+import { useReport } from '../contexts/ReportContext';
 
 const STEPS = [
   {
@@ -74,10 +75,19 @@ const FEATURES = [
 export default function LandingPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { openReport } = useReport();
   const reduce = useReducedMotion();
 
   function go(path) {
     navigate(user ? path : `/login?next=${encodeURIComponent(path)}`);
+  }
+
+  function report(type) {
+    if (user) {
+      openReport(type);
+      return;
+    }
+    go(`/feed?type=${type}`);
   }
 
   return (
@@ -100,7 +110,7 @@ export default function LandingPage() {
             />
           </div>
 
-          <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-4 pb-16 pt-14 sm:px-6 lg:grid-cols-[1.1fr_0.9fr] lg:gap-8 lg:pb-24 lg:pt-20">
+          <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-4 pb-16 pt-14 sm:px-6 lg:grid-cols-2 lg:gap-8 lg:pb-24 lg:pt-20">
             <motion.div
               initial={reduce ? false : { opacity: 0, y: 24 }}
               animate={{ opacity: 1, y: 0 }}
@@ -145,14 +155,14 @@ export default function LandingPage() {
 
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                 <button
-                  onClick={() => go('/feed?type=lost')}
+                  onClick={() => report('lost')}
                   className="btn-primary justify-center !px-6 !py-3.5 !text-base"
                 >
                   Report a lost item
                   <ArrowRight size={18} />
                 </button>
                 <button
-                  onClick={() => go('/feed?type=found')}
+                  onClick={() => report('found')}
                   className="btn-ghost justify-center !bg-white !px-6 !py-3.5 !text-base dark:!bg-slate-900"
                 >
                   I found something
@@ -173,9 +183,9 @@ export default function LandingPage() {
       initial={reduce ? false : { opacity: 0, scale: 0.96 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-      className="mx-auto hidden w-full max-w-md sm:block lg:justify-self-end"
+      className="mx-auto hidden w-full max-w-xl sm:block lg:justify-self-end"
     >
-      <DotLottieReact src="/animation/map.lottie" loop autoplay style={{ width: '100%', height: 'auto' }} />
+      <DotLottieReact src="/animation/Sonar_Radar.lottie" loop autoplay style={{ width: '100%', height: 'auto' }} />
     </motion.div>
           </div>
         </section>
@@ -192,7 +202,7 @@ export default function LandingPage() {
                   transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
                   className="relative order-first mx-auto hidden w-fit sm:block lg:order-none"
                 >
-                  <DotLottieReact src="/animation/Sonar_Radar.lottie" loop autoplay style={{ width: 320, height: 320 }} />
+                  <DotLottieReact src="/animation/map.lottie" loop autoplay style={{ width: 520, height: 'auto' }} />
                 </motion.div>
 
                 <div className="order-last lg:order-none">
@@ -343,14 +353,14 @@ export default function LandingPage() {
                   </p>
                   <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
                     <button
-                      onClick={() => go('/feed?type=lost')}
+                      onClick={() => report('lost')}
                       className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-br from-brand-700 to-gold-600 px-6 py-3.5 text-base font-semibold text-white shadow-glow transition hover:from-brand-800 hover:to-gold-700 active:scale-[0.98]"
                     >
                       Report a lost item
                       <ArrowRight size={18} />
                     </button>
                     <button
-                      onClick={() => go('/feed?type=found')}
+                      onClick={() => report('found')}
                       className="inline-flex items-center justify-center rounded-xl border border-white/15 bg-white/10 px-6 py-3.5 text-base font-semibold text-white transition hover:bg-white/20 active:scale-[0.98]"
                     >
                       I found something

@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { Bell, BellRing, Mail, MessageSquare } from 'lucide-react';
+import { Bell, BellRing, Mail, MessageSquare, MessageSquareQuote } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import Swal from 'sweetalert2';
 import Spinner from '../components/ui/Spinner';
@@ -75,7 +75,7 @@ export default function NotificationsPage() {
             }`}
           >
 <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white text-brand-500 shadow-card dark:bg-slate-800">
-                {n.type === 'match' ? <BellRing size={17} /> : n.type === 'claim' ? <HandIcon /> : n.type === 'contact' ? <MessageSquare size={17} /> : <Mail size={17} />}
+                {n.type === 'match' ? <BellRing size={17} /> : n.type === 'claim' ? <HandIcon /> : n.type === 'contact' ? <MessageSquare size={17} /> : n.type === 'feedback' ? <MessageSquareQuote size={17} /> : <Mail size={17} />}
               </span>
             <span className="min-w-0 flex-1">
               <span className="mb-0.5 flex items-center justify-between gap-2">

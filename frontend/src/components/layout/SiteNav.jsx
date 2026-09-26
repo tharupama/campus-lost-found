@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Menu, X, Sun, Moon, Bell, LogOut, ArrowRight } from 'lucide-react';
+import Swal from 'sweetalert2';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNotifications } from '../../contexts/NotificationContext';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -23,6 +24,7 @@ export default function SiteNav() {
 
   const links = [
     ...BASE_LINKS,
+    ...(user ? [{ to: '/feedback', label: 'Feedback', end: true }] : []),
     ...(user && ['admin', 'guard'].includes(user.role)
       ? [{ to: user.role === 'guard' ? '/guard' : '/admin', label: user.role === 'guard' ? 'Guard' : 'Admin', end: false }]
       : []),
@@ -31,6 +33,21 @@ export default function SiteNav() {
   function go(path) {
     setOpen(false);
     navigate(path);
+  }
+
+  async function confirmLogout() {
+    const result = await Swal.fire({
+      icon: 'warning',
+      title: 'Log out?',
+      text: 'You will need your campus account to sign back in.',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, log out',
+      confirmButtonColor: '#e11d48',
+      cancelButtonColor: '#64748b',
+    });
+    if (!result.isConfirmed) return;
+    logout();
+    go('/login');
   }
 
   return (
@@ -76,7 +93,7 @@ export default function SiteNav() {
             <>
               <button
                 onClick={() => go('/notifications')}
-                className="relative rounded-xl p-2.5 text-slate-500 transition hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800"
+                className="relative hidden rounded-xl p-2.5 text-slate-500 transition hover:bg-slate-100 md:inline-flex dark:text-slate-400 dark:hover:bg-slate-800"
                 aria-label="Notifications"
               >
                 <Bell size={21} />
@@ -102,10 +119,7 @@ export default function SiteNav() {
                 )}
               </button>
               <button
-                onClick={() => {
-                  logout();
-                  go('/login');
-                }}
+                onClick={confirmLogout}
                 className="rounded-xl p-2.5 text-slate-400 transition hover:bg-slate-100 hover:text-rose-500 dark:hover:bg-slate-800"
                 aria-label="Logout"
               >
@@ -175,13 +189,7 @@ export default function SiteNav() {
                     <button onClick={() => go('/profile')} className="btn-ghost w-full justify-center">
                       My profile
                     </button>
-                    <button
-                      onClick={() => {
-                        logout();
-                        go('/login');
-                      }}
-                      className="btn-ghost w-full justify-center hover:text-rose-500"
-                    >
+                    <button onClick={confirmLogout} className="btn-ghost w-full justify-center hover:text-rose-500">
                       Logout
                     </button>
                   </>

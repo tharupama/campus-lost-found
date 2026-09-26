@@ -4,7 +4,7 @@ const { OAuth2Client } = require('google-auth-library');
 const User = require('../models/User.model');
 const { processImage } = require('../services/upload.service');
 const { sendMail } = require('../config/email');
-const { renderForgotPassword, renderNotification } = require('../template');
+const { renderForgotPassword, renderNotification } = require('../templates');
 
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
@@ -140,8 +140,8 @@ exports.forgotPassword = async (req, res, next) => {
       await user.save();
 
       const resetUrl = `${frontendUrl()}/reset-password?token=${rawToken}`;
-      const html = renderForgotPassword({ name: user.name, resetUrl, expiryHours: 1 });
-      await sendMail({ to: user.email, subject: 'Reset your password', html });
+      const { html, text } = renderForgotPassword({ name: user.name, resetUrl, expiryHours: 1 });
+      await sendMail({ to: user.email, subject: 'Reset your password', html, text });
     }
 
     res.status(200).json({ message: 'If that email is registered, a reset link has been sent.' });
@@ -173,11 +173,11 @@ exports.resetPassword = async (req, res, next) => {
     user.resetPasswordExpires = null;
     await user.save();
 
-    const html = renderNotification({
+    const { html, text } = renderNotification({
       title: 'Your password was changed',
       message: 'Your password was changed successfully. If this was not you, contact the campus security desk immediately.',
     });
-    await sendMail({ to: user.email, subject: 'Your password was changed', html });
+    await sendMail({ to: user.email, subject: 'Your password was changed', html, text });
 
     res.status(200).json({ message: 'Password updated. You can now sign in.' });
   } catch (err) {

@@ -87,6 +87,17 @@ export const contactService = {
   },
 };
 
+export const feedbackService = {
+  async submit(payload) {
+    const { data } = await api.post('/feedback', payload);
+    return data;
+  },
+  async getMine(page = 1, pageSize = 10) {
+    const { data } = await api.get('/feedback/mine', { params: { page, pageSize } });
+    return data;
+  },
+};
+
 export const chatService = {
   async send(messages) {
     const { data } = await api.post('/chat', { messages });
@@ -141,6 +152,26 @@ export const adminService = {
   },
   async deleteUser(id) {
     const { data } = await api.delete(`/admin/users/${id}`);
+    return data;
+  },
+  async getFeedback(status = '', category = '', search = '', page = 1, pageSize = 10) {
+    const { data } = await api.get('/admin/feedback', {
+      params: {
+        ...(status ? { status } : {}),
+        ...(category ? { category } : {}),
+        ...(search ? { search } : {}),
+        page,
+        pageSize,
+      },
+    });
+    return data;
+  },
+  async updateFeedback(id, status) {
+    const { data } = await api.patch(`/admin/feedback/${id}`, { status });
+    return data;
+  },
+  async deleteFeedback(id) {
+    const { data } = await api.delete(`/admin/feedback/${id}`);
     return data;
   },
 };

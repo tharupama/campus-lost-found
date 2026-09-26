@@ -88,7 +88,11 @@ export default function ProfilePage() {
     return arr.slice(start, start + activityPageSize);
   };
 
-  const activitySource = activityTab === 'claims' ? claims : myItems.filter((i) => i.type === activityTab);
+  const activitySource =
+    activityTab === 'claims' ? claims : myItems.filter((i) => i.type === activityTab);
+
+  const tabCount = (key) =>
+    key === 'claims' ? claims.length : myItems.filter((i) => i.type === key).length;
 
   function applyFile(file) {
     if (!file) return;
@@ -288,7 +292,7 @@ export default function ProfilePage() {
 
         <div className="mb-4 flex gap-2 rounded-2xl bg-white p-1.5 shadow-card dark:bg-slate-900">
           {TABS.map((t) => {
-            const count = t.key === 'claims' ? claims.length : myItems.filter((i) => i.type === t.key).length;
+            const count = tabCount(t.key);
             return (
               <button
                 key={t.key}

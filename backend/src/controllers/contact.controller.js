@@ -1,5 +1,5 @@
 const User = require('../models/User.model');
-const { notifyUser } = require('../services/notification.service');
+const { notifyContactMessage } = require('../services/notification.service');
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const ROLES = ['admin', 'guard'];
@@ -37,31 +37,17 @@ exports.sendContactMessage = async (req, res, next) => {
     if (!EMAIL_RE.test(email)) return res.status(400).json({ message: 'Enter a valid email address' });
     if (message.length < 5) return res.status(400).json({ message: 'Message should be at least 5 characters' });
 
-    const recipients = await User.find({ role: recipientRole });
-    const title = `New contact message from ${name}`;
-    const detail = [
-      `Name: ${name}`,
-      `Email: ${email}`,
-      mobileNumber ? `Mobile: ${mobileNumber}` : null,
-      `Message: "${message}"`,
-    ]
-      .filter(Boolean)
-      .join(' · ');
-
-    await Promise.all(
-      recipients.map((recipient) =>
-        notifyUser({
-          user: recipient._id,
-          type: 'contact',
-          title,
-          message: detail,
-        })
-      )
-    );
+    const recipients = await User.find({ role: recipientRole }).select('name email role');
+    const { notified, emailsSent } = await notifyContactMessage({
+      recipientRole,
+      recipients,
+      sender: { name, email, mobileNumber, message },
+    });
 
     res.status(200).json({
-      message: `Message sent — we've notified the ${recipientRole}${recipients.length === 1 ? '' : 's'}`,
-      recipientsNotified: recipients.length,
+      message: `Message sent — we've notified the ${recipientRole}${notified === 1 ? '' : 's'}`,
+      recipientsNotified: notified,
+      emailsSent,
     });
   } catch (err) {
     next(err);

@@ -1,20 +1,37 @@
-import { Home, HandCoins, Bell, ShieldCheck, Plus } from 'lucide-react';
+import { Home, HandCoins, Bell, ShieldCheck, Plus, MessageSquareQuote, Info, Mail } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNotifications } from '../../contexts/NotificationContext';
+import { useReport } from '../../contexts/ReportContext';
 import { motion } from 'framer-motion';
 
-export default function BottomNav({ openReport }) {
+const PUBLIC_LINKS = [
+  { to: '/', icon: Home, label: 'Home', end: true },
+  { to: '/about', icon: Info, label: 'About' },
+  { to: '/contact', icon: Mail, label: 'Contact' },
+];
+
+export default function BottomNav() {
   const { user } = useAuth();
   const { unread } = useNotifications();
+  const { openReport } = useReport();
+
+  if (!user) {
+    return (
+      <NavFrame columns="grid-cols-3">
+        {PUBLIC_LINKS.map((item) => (
+          <NavItem key={item.to} item={item} />
+        ))}
+      </NavFrame>
+    );
+  }
+
+  const isStaff = ['admin', 'guard'].includes(user.role);
+  const feedback = { to: '/feedback', icon: MessageSquareQuote, label: 'Feedback' };
 
   const items = [
     { to: '/feed', icon: Home, label: 'Feed', end: true },
-    {
-      to: '/my-claims',
-      icon: HandCoins,
-      label: 'Claims',
-    },
+    isStaff ? feedback : { to: '/my-claims', icon: HandCoins, label: 'Claims' },
   ];
 
   const rightItems = [
@@ -24,33 +41,40 @@ export default function BottomNav({ openReport }) {
       label: 'Alerts',
       dot: unread > 0,
     },
+    isStaff
+      ? {
+          to: user.role === 'guard' ? '/guard' : '/admin',
+          icon: ShieldCheck,
+          label: user.role === 'guard' ? 'Guard' : 'Admin',
+        }
+      : feedback,
   ];
 
-  if (user && ['admin', 'guard'].includes(user.role)) {
-    rightItems.push({
-      to: user.role === 'guard' ? '/guard' : '/admin',
-      icon: ShieldCheck,
-      label: user.role === 'guard' ? 'Guard' : 'Admin',
-    });
-  }
+  return (
+    <NavFrame columns="grid-cols-5">
+      <NavItem item={items[0]} />
+      <NavItem item={items[1]} />
+      <button
+        onClick={() => openReport()}
+        className="relative -mt-5 flex flex-col items-center justify-center"
+        aria-label="Report item"
+      >
+        <span className="flex h-13 w-13 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-700 to-gold-600 text-white shadow-glow">
+          <Plus size={26} />
+        </span>
+        <span className="mt-0.5 text-[10px] font-semibold text-slate-400">Report</span>
+      </button>
+      <NavItem item={rightItems[0]} />
+      <NavItem item={rightItems[1]} />
+    </NavFrame>
+  );
+}
 
+function NavFrame({ columns, children }) {
   return (
     <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/90 backdrop-blur-lg dark:border-slate-800 dark:bg-slate-900/90 md:hidden">
-      <div className="mx-auto grid max-w-lg grid-cols-5 items-center pb-[env(safe-area-inset-bottom)]">
-        <NavItem item={items[0]} />
-        <NavItem item={items[1]} />
-        <button
-          onClick={openReport}
-          className="relative -mt-5 flex flex-col items-center justify-center"
-          aria-label="Report item"
-        >
-          <span className="flex h-13 w-13 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-700 to-gold-600 text-white shadow-glow">
-            <Plus size={26} />
-          </span>
-          <span className="mt-0.5 text-[10px] font-semibold text-slate-400">Report</span>
-        </button>
-        <NavItem item={rightItems[0]} />
-        {rightItems[1] ? <NavItem item={rightItems[1]} /> : <span />}
+      <div className={`mx-auto grid max-w-lg ${columns} items-center pb-[env(safe-area-inset-bottom)]`}>
+        {children}
       </div>
     </nav>
   );

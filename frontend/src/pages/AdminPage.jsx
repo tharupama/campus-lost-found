@@ -1,6 +1,7 @@
 ﻿import { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useDebouncedCallback } from 'use-debounce';
-import { ShieldCheck, HandCoins, Archive, ScanLine, Check, X, QrCode, KeyRound, Loader2, PackageCheck, PackageX, Users, UserPlus, Pencil, Trash2, Search, Package, Phone } from 'lucide-react';
+import { ShieldCheck, HandCoins, Archive, ScanLine, Check, X, QrCode, KeyRound, Loader2, PackageCheck, PackageX, Users, UserPlus, Pencil, Trash2, Search, Package, Phone, MessageSquareQuote } from 'lucide-react';
 import { format, formatDistanceToNow } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
 import { QRCodeSVG } from 'qrcode.react';
@@ -14,7 +15,7 @@ import { Field } from '../components/ui/Field';
 import QrScanner from '../components/ui/QrScanner';
 import { adminService } from '../services';
 import { useAuth } from '../contexts/AuthContext';
-import { CATEGORIES, BUILDINGS } from '../config/constants';
+import { CATEGORIES, BUILDINGS, FEEDBACK_CATEGORIES } from '../config/constants';
 
 const TABS = [
   { key: 'claims', icon: HandCoins, label: 'Claims' },
@@ -29,10 +30,20 @@ const ROLE_BADGE = {
   user: 'system',
 };
 
+const SECTIONS = ['security', 'items', 'users', 'feedback'];
+const ADMIN_ONLY_SECTIONS = ['items', 'users', 'feedback'];
+
 export default function AdminPage() {
   const { user } = useAuth();
   const isAdmin = user?.role === 'admin';
-  const [section, setSection] = useState('security');
+  const [searchParams] = useSearchParams();
+  // Deep link from a feedback notification/email: /admin?section=feedback
+  const [section, setSection] = useState(() => {
+    const requested = searchParams.get('section');
+    if (!requested || !SECTIONS.includes(requested)) return 'security';
+    if (ADMIN_ONLY_SECTIONS.includes(requested) && !isAdmin) return 'security';
+    return requested;
+  });
   const [tab, setTab] = useState('claims');
   const [claims, setClaims] = useState([]);
   const [vault, setVault] = useState([]);
@@ -82,6 +93,18 @@ export default function AdminPage() {
   const [usersPageSize, setUsersPageSize] = useState(10);
   const [usersTotal, setUsersTotal] = useState(0);
   const [usersTotalPages, setUsersTotalPages] = useState(1);
+
+  const [feedback, setFeedback] = useState([]);
+  const [feedbackLoading, setFeedbackLoading] = useState(false);
+  const [feedbackStatus, setFeedbackStatus] = useState('');
+  const [feedbackCategory, setFeedbackCategory] = useState('');
+  const [feedbackSearch, setFeedbackSearch] = useState('');
+  const [feedbackSummary, setFeedbackSummary] = useState({ count: 0 });
+  const [feedbackPage, setFeedbackPage] = useState(1);
+  const [feedbackPageSize, setFeedbackPageSize] = useState(10);
+  const [feedbackTotal, setFeedbackTotal] = useState(0);
+  const [feedbackTotalPages, setFeedbackTotalPages] = useState(1);
+  const [newFeedbackCount, setNewFeedbackCount] = useState(0);
 
   const pendingDropOffs = vault.filter((i) => i.type === 'found' && i.handoverStatus !== 'in_vault');
   const vaultItems = vault.filter((i) => !pendingDropOffs.includes(i));
@@ -167,6 +190,92 @@ export default function AdminPage() {
     setUsersPage(1);
     loadUsers(1, usersPageSize);
   }, 350);
+
+  const loadFeedback = async (status = feedbackStatus, category = feedbackCategory, search = feedbackSearch, p = feedbackPage, s = feedbackPageSize) => {
+    setFeedbackLoading(true);
+    try {
+      const data = await adminService.getFeedback(status, category, search, p, s);
+      setFeedback(data.feedback || []);
+      setFeedbackTotal(data.total || 0);
+      setFeedbackTotalPages(data.totalPages || 1);
+      if (data.summary) setFeedbackSummary(data.summary);
+    } catch {
+      toast.error('Could not load feedback');
+    } finally {
+      setFeedbackLoading(false);
+    }
+  };
+
+  const refreshNewFeedbackCount = async () => {
+    try {
+      const data = await adminService.getFeedback('new', '', '', 1, 1);
+      setNewFeedbackCount(data.total || 0);
+    } catch {
+      // silent
+    }
+  };
+
+  useEffect(() => {
+    refreshNewFeedbackCount();
+  }, []);
+
+  useEffect(() => {
+    if (section === 'feedback' && isAdmin) loadFeedback(feedbackStatus, feedbackCategory, feedbackSearch, 1, feedbackPageSize);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [section, isAdmin]);
+
+  const searchFeedback = useDebouncedCallback(() => {
+    setFeedbackPage(1);
+    loadFeedback(feedbackStatus, feedbackCategory, feedbackSearch, 1, feedbackPageSize);
+  }, 350);
+
+  const setFeedbackStatusFilter = (status) => {
+    setFeedbackStatus(status);
+    setFeedbackPage(1);
+    loadFeedback(status, feedbackCategory, feedbackSearch, 1, feedbackPageSize);
+  };
+
+  const setFeedbackCategoryFilter = (category) => {
+    setFeedbackCategory(category);
+    setFeedbackPage(1);
+    loadFeedback(feedbackStatus, category, feedbackSearch, 1, feedbackPageSize);
+  };
+
+  const reviewFeedback = async (item, status) => {
+    try {
+      const data = await adminService.updateFeedback(item._id, status);
+      setFeedback((list) => list.map((f) => (f._id === item._id ? data.feedback : f)));
+      toast.success(data.message);
+      if (feedbackStatus === 'new' || feedbackStatus === 'reviewed') {
+        loadFeedback(feedbackStatus, feedbackCategory, feedbackSearch, feedbackPage, feedbackPageSize);
+      }
+      refreshNewFeedbackCount();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Could not update feedback');
+    }
+  };
+
+  const removeFeedback = async (item) => {
+    const result = await Swal.fire({
+      icon: 'warning',
+      title: 'Delete this feedback?',
+      text: 'This removes it permanently and clears the related admin alerts. This cannot be undone.',
+      showCancelButton: true,
+      confirmButtonText: 'Delete',
+      confirmButtonColor: '#e11d48',
+      cancelButtonText: 'Keep it',
+    });
+    if (!result.isConfirmed) return;
+    try {
+      await adminService.deleteFeedback(item._id);
+      setFeedback((list) => list.filter((f) => f._id !== item._id));
+      setFeedbackTotal((t) => Math.max(0, t - 1));
+      toast.success('Feedback deleted');
+      refreshNewFeedbackCount();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Could not delete feedback');
+    }
+  };
 
   const loadItems = async (p = itemsPage, s = itemsPageSize) => {
     setItemsLoading(true);
@@ -468,6 +577,15 @@ export default function AdminPage() {
             label="User Management"
           />
         )}
+        {isAdmin && (
+          <SideBtn
+            active={section === 'feedback'}
+            onClick={() => setSection('feedback')}
+            icon={MessageSquareQuote}
+            label="Feedback"
+            badge={newFeedbackCount}
+          />
+        )}
         <p className="mt-auto px-2 pt-3 text-[11px] font-medium text-brand-300/70">Claims · vault · QR handover · accounts</p>
       </aside>
 
@@ -477,6 +595,7 @@ export default function AdminPage() {
             { key: 'security', icon: ShieldCheck, label: 'Security' },
             ...(isAdmin ? [{ key: 'items', icon: Package, label: 'Items' }] : []),
             ...(isAdmin ? [{ key: 'users', icon: Users, label: 'Users' }] : []),
+            ...(isAdmin ? [{ key: 'feedback', icon: MessageSquareQuote, label: 'Feedback' }] : []),
           ].map((t) => (
             <button
               key={t.key}
@@ -490,6 +609,11 @@ export default function AdminPage() {
               {t.key === 'security' && pendingCount > 0 && (
                 <span className={`flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] ${section === t.key ? 'bg-white text-brand-600' : 'bg-rose-500 text-white'}`}>
                   {pendingCount}
+                </span>
+              )}
+              {t.key === 'feedback' && newFeedbackCount > 0 && (
+                <span className={`flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] ${section === t.key ? 'bg-white text-brand-600' : 'bg-rose-500 text-white'}`}>
+                  {newFeedbackCount}
                 </span>
               )}
             </button>
@@ -861,6 +985,89 @@ export default function AdminPage() {
               onPageSizeChange={(s) => { setItemsPageSize(s); setItemsPage(1); loadItems(1, s); }}
             />
           </>
+        ) : section === 'feedback' ? (
+          <>
+            <div className="mb-5 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500 to-brand-600 text-white shadow-glow">
+                  <MessageSquareQuote size={20} />
+                </span>
+                <div>
+                  <h1 className="text-xl font-extrabold text-midnight dark:text-white">Student Feedback</h1>
+                  <p className="text-sm text-slate-400 dark:text-slate-500">
+                    {feedbackSummary.count} submitted
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="relative mb-3">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+              <input
+                className="input-field pl-10"
+                placeholder="Search by message, student name or email…"
+                value={feedbackSearch}
+                onChange={(e) => { setFeedbackSearch(e.target.value); searchFeedback(); }}
+                onKeyDown={(e) => e.key === 'Enter' && loadFeedback(feedbackStatus, feedbackCategory, feedbackSearch, 1, feedbackPageSize)}
+              />
+            </div>
+
+            <div className="mb-3 flex gap-2 overflow-x-auto pb-1">
+              {[['', 'All'], ['new', 'New'], ['reviewed', 'Reviewed']].map(([key, label]) => (
+                <button
+                  key={key || 'all'}
+                  onClick={() => setFeedbackStatusFilter(key)}
+                  className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-semibold transition ${
+                    feedbackStatus === key ? 'bg-brand-600 text-white' : 'bg-white text-slate-500 dark:bg-slate-900 dark:text-slate-400'
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+
+            <div className="mb-4 flex gap-2 overflow-x-auto pb-1">
+              {[['', 'Every category'], ...FEEDBACK_CATEGORIES.map((c) => [c.key, c.label])].map(([key, label]) => (
+                <button
+                  key={key || 'all-cats'}
+                  onClick={() => setFeedbackCategoryFilter(key)}
+                  className={`shrink-0 rounded-full border px-3 py-1 text-xs font-semibold transition ${
+                    feedbackCategory === key
+                      ? 'border-violet-500 bg-violet-500 text-white'
+                      : 'border-slate-200 bg-white text-slate-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400'
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+
+            {feedbackLoading ? (
+              <Spinner />
+            ) : feedback.length === 0 ? (
+              <Empty text={feedbackSearch ? 'No feedback matches your search' : 'No feedback in this view yet'} />
+            ) : (
+              <div className="space-y-3">
+                {feedback.map((f) => (
+                  <FeedbackReviewCard
+                    key={f._id}
+                    feedback={f}
+                    onReview={(status) => reviewFeedback(f, status)}
+                    onDelete={() => removeFeedback(f)}
+                  />
+                ))}
+              </div>
+            )}
+
+            <Pagination
+              page={feedbackPage}
+              pageSize={feedbackPageSize}
+              total={feedbackTotal}
+              totalPages={feedbackTotalPages}
+              onChangePage={(p) => { setFeedbackPage(p); loadFeedback(feedbackStatus, feedbackCategory, feedbackSearch, p, feedbackPageSize); }}
+              onPageSizeChange={(s) => { setFeedbackPageSize(s); setFeedbackPage(1); loadFeedback(feedbackStatus, feedbackCategory, feedbackSearch, 1, s); }}
+            />
+          </>
         ) : (
           <>
             <div className="mb-5 flex items-center justify-between gap-3">
@@ -1142,6 +1349,78 @@ function Empty({ text }) {
       <span className="mb-3 flex h-14 w-14 items-center justify-center rounded-3xl bg-white text-2xl shadow-card dark:bg-slate-900">📭</span>
       <p className="font-bold text-midnight dark:text-white">{text}</p>
     </div>
+  );
+}
+
+function FeedbackReviewCard({ feedback, onReview, onDelete }) {
+  const category = FEEDBACK_CATEGORIES.find((c) => c.key === feedback.category);
+  const author = feedback.user;
+
+  return (
+    <motion.div
+      layout
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      className={`rounded-2xl bg-white p-4 shadow-card dark:bg-slate-900 ${
+        feedback.status === 'new' ? 'ring-1 ring-gold-300 dark:ring-gold-500/30' : ''
+      }`}
+    >
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+        <span className="flex flex-wrap items-center gap-2">
+          <Badge color={feedback.status}>{feedback.status}</Badge>
+          <Badge color="feedback">{category?.label || feedback.category}</Badge>
+        </span>
+        <span className="text-[11px] text-slate-400 dark:text-slate-500">
+          {formatDistanceToNow(new Date(feedback.createdAt), { addSuffix: true })}
+        </span>
+      </div>
+
+      <div className="flex items-center gap-2.5">
+        <span className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-gradient-to-br from-brand-100 to-gold-100 text-xs font-extrabold text-brand-600 dark:from-brand-500/20 dark:to-gold-500/20 dark:text-brand-300">
+          {author?.avatar ? (
+            <img src={author.avatar} alt={author.name} className="h-full w-full object-cover" />
+          ) : (
+            author?.name?.charAt(0).toUpperCase() || '?'
+          )}
+        </span>
+        <div className="min-w-0">
+          <p className="truncate text-sm font-bold text-midnight dark:text-white">{author?.name || 'Unknown'}</p>
+          <a href={`mailto:${author?.email || ''}`} className="truncate text-xs text-brand-600 hover:underline dark:text-brand-400">
+            {author?.email}
+          </a>
+        </div>
+        {author?.role && <Badge color={ROLE_BADGE[author.role] || 'system'}>{author.role}</Badge>}
+      </div>
+
+      <p className="mt-3 whitespace-pre-line rounded-xl bg-slate-50 p-3 text-sm leading-relaxed text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+        {feedback.message}
+      </p>
+
+      {feedback.status === 'reviewed' && feedback.reviewedBy && (
+        <p className="mt-2 text-[11px] text-slate-400 dark:text-slate-500">
+          Reviewed by {feedback.reviewedBy.name}
+          {feedback.reviewedAt ? ` · ${formatDistanceToNow(new Date(feedback.reviewedAt), { addSuffix: true })}` : ''}
+        </p>
+      )}
+
+      <div className="mt-4 flex flex-wrap gap-2">
+        {feedback.status === 'new' ? (
+          <button onClick={() => onReview('reviewed')} className="btn-primary !px-3 !py-2 text-xs">
+            <Check size={14} /> Mark reviewed
+          </button>
+        ) : (
+          <button onClick={() => onReview('new')} className="btn-ghost !px-3 !py-2 text-xs">
+            <X size={14} /> Reopen
+          </button>
+        )}
+        <button
+          onClick={onDelete}
+          className="btn-ghost !px-3 !py-2 text-xs !text-rose-600 hover:!bg-rose-50 dark:!text-rose-400 dark:hover:!bg-rose-500/10"
+        >
+          <Trash2 size={14} /> Delete
+        </button>
+      </div>
+    </motion.div>
   );
 }
 
