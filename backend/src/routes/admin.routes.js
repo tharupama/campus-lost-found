@@ -15,6 +15,7 @@ const {
   getFeedback,
   updateFeedback,
   deleteFeedback,
+  getStats,
 } = require('../controllers/admin.controller');
 const { protect, authorize } = require('../middleware/auth.middleware');
 const upload = require('../middleware/upload.middleware');
@@ -39,5 +40,7 @@ router.delete('/items/:id', authorize('admin'), deleteItem);
 router.get('/feedback', authorize('admin'), getFeedback);
 router.patch('/feedback/:id', authorize('admin'), updateFeedback);
 router.delete('/feedback/:id', authorize('admin'), deleteFeedback);
+
+router.get('/stats', authorize('admin', 'guard'), getStats);
 
 module.exports = router;

@@ -490,3 +490,169 @@ exports.deleteFeedback = async (req, res, next) => {
     next(err);
   }
 };
+
+// ---- Overview / insights -------------------------------------------------
+// Feeds the admin Overview panel. Everything is grouped server-side so the
+// dashboard stays a single request regardless of how much data exists.
+
+const DAY = 24 * 60 * 60 * 1000;
+
+function utcDayKey(date) {
+  return date.toISOString().slice(0, 10);
+}
+
+function tally(rows, fallback = []) {
+  const out = Object.fromEntries(fallback.map((k) => [k, 0]));
+  for (const row of rows) out[row._id] = row.count;
+  return out;
+}
+
+function topOf(rows, limit) {
+  return rows
+    .map((r) => ({ key: r._id, count: r.count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, limit);
+}
+
+exports.getStats = async (req, res, next) => {
+  try {
+    const days = Math.min(Math.max(parseInt(req.query.range, 10) || 30, 7), 90);
+    const start = new Date(Date.now() - (days - 1) * DAY);
+    start.setUTCHours(0, 0, 0, 0);
+    const inRange = { createdAt: { $gte: start } };
+    const dayFormat = { format: '%Y-%m-%d', date: '$createdAt' };
+
+    const [
+      itemsByType,
+      itemsByStatus,
+      foundByHandover,
+      claimsByStatus,
+      usersByRole,
+      feedbackByStatus,
+      dailyItems,
+      dailyClaims,
+      rangeCategory,
+      rangeLocations,
+      rangeFeedback,
+      resolved,
+    ] = await Promise.all([
+      Item.aggregate([{ $group: { _id: '$type', count: { $sum: 1 } } }]),
+      Item.aggregate([{ $group: { _id: '$status', count: { $sum: 1 } } }]),
+      Item.aggregate([
+        { $match: { type: 'found' } },
+        { $group: { _id: '$handoverStatus', count: { $sum: 1 } } },
+      ]),
+      Claim.aggregate([{ $group: { _id: '$status', count: { $sum: 1 } } }]),
+      User.aggregate([{ $group: { _id: '$role', count: { $sum: 1 } } }]),
+      Feedback.aggregate([{ $group: { _id: '$status', count: { $sum: 1 } } }]),
+      Item.aggregate([
+        { $match: inRange },
+        { $group: { _id: { day: { $dateToString: dayFormat }, type: '$type' }, count: { $sum: 1 } } },
+      ]),
+      Claim.aggregate([
+        { $match: inRange },
+        { $group: { _id: { $dateToString: dayFormat }, count: { $sum: 1 } } },
+      ]),
+      Item.aggregate([
+        { $match: inRange },
+        { $group: { _id: '$category', count: { $sum: 1 } } },
+        { $sort: { count: -1 } },
+      ]),
+      Item.aggregate([
+        { $match: inRange },
+        { $group: { _id: '$location', count: { $sum: 1 } } },
+        { $sort: { count: -1 } },
+      ]),
+      Feedback.aggregate([
+        { $match: inRange },
+        { $group: { _id: '$category', count: { $sum: 1 } } },
+        { $sort: { count: -1 } },
+      ]),
+      Item.aggregate([
+        { $match: { status: 'resolved', handedOverAt: { $ne: null } } },
+        {
+          $project: {
+            days: {
+              $divide: [{ $subtract: ['$handedOverAt', '$createdAt'] }, DAY],
+            },
+          },
+        },
+        { $group: { _id: null, average: { $avg: '$days' } } },
+      ]),
+    ]);
+
+    const types = tally(itemsByType, ['lost', 'found']);
+    const itemStatus = tally(itemsByStatus, ITEM_STATUSES);
+    const handover = tally(foundByHandover, HANDOVER_STATUSES);
+    const claimStatus = tally(claimsByStatus, ['pending', 'approved', 'rejected', 'resolved']);
+    const roleCount = tally(usersByRole, ROLES);
+    const feedbackStatus = tally(feedbackByStatus, FEEDBACK_STATUSES);
+
+    // Fill gaps so the chart shows a continuous axis instead of skipping quiet days.
+    const lostByDay = {};
+    const foundByDay = {};
+    for (const row of dailyItems) {
+      const bucket = row._id.type === 'found' ? foundByDay : lostByDay;
+      bucket[row._id.day] = (bucket[row._id.day] || 0) + row.count;
+    }
+    const claimsByDay = Object.fromEntries(dailyClaims.map((r) => [r._id, r.count]));
+
+    const timeline = [];
+    for (let i = 0; i < days; i += 1) {
+      const key = utcDayKey(new Date(start.getTime() + i * DAY));
+      timeline.push({
+        date: key,
+        lost: lostByDay[key] || 0,
+        found: foundByDay[key] || 0,
+        claims: claimsByDay[key] || 0,
+      });
+    }
+
+    const totalItems = types.lost + types.found;
+    const totalClaims = Object.values(claimStatus).reduce((a, b) => a + b, 0);
+    const totalUsers = Object.values(roleCount).reduce((a, b) => a + b, 0);
+    const resolvedCount = itemStatus.resolved;
+
+    res.status(200).json({
+      range: days,
+      totals: {
+        items: totalItems,
+        lost: types.lost,
+        found: types.found,
+        active: itemStatus.active,
+        claimed: itemStatus.claimed,
+        resolved: resolvedCount,
+        inVault: handover.in_vault,
+        awaitingDropOff: handover.pending,
+        claims: totalClaims,
+        pendingClaims: claimStatus.pending,
+        approvedClaims: claimStatus.approved,
+        users: totalUsers,
+        feedback: Object.values(feedbackStatus).reduce((a, b) => a + b, 0),
+        newFeedback: feedbackStatus.new,
+        resolutionRate: totalItems ? Math.round((resolvedCount / totalItems) * 1000) / 10 : 0,
+        avgResolutionDays: resolved[0]?.average ? Math.round(resolved[0].average * 10) / 10 : 0,
+      },
+      timeline,
+      itemsByType: [
+        { key: 'lost', count: types.lost },
+        { key: 'found', count: types.found },
+      ],
+      itemsByStatus: ITEM_STATUSES.map((key) => ({ key, count: itemStatus[key] })),
+      claimsByStatus: ['pending', 'approved', 'rejected', 'resolved'].map((key) => ({
+        key,
+        count: claimStatus[key],
+      })),
+      usersByRole: ROLES.map((key) => ({ key, count: roleCount[key] })).filter((r) => r.count > 0),
+      feedbackByStatus: FEEDBACK_STATUSES.map((key) => ({ key, count: feedbackStatus[key] })),
+      itemsByCategory: topOf(rangeCategory, 8),
+      feedbackByCategory: FEEDBACK_CATEGORIES.map((key) => ({
+        key,
+        count: (rangeFeedback.find((r) => r._id === key) || {}).count || 0,
+      })),
+      topLocations: topOf(rangeLocations, 8),
+    });
+  } catch (err) {
+    next(err);
+  }
+};

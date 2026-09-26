@@ -1,7 +1,7 @@
 ﻿import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useDebouncedCallback } from 'use-debounce';
-import { ShieldCheck, HandCoins, Archive, ScanLine, Check, X, QrCode, KeyRound, Loader2, PackageCheck, PackageX, Users, UserPlus, Pencil, Trash2, Search, Package, Phone, MessageSquareQuote } from 'lucide-react';
+import { ShieldCheck, HandCoins, Archive, ScanLine, Check, X, QrCode, KeyRound, Loader2, PackageCheck, PackageX, Users, UserPlus, Pencil, Trash2, Search, Package, Phone, MessageSquareQuote, LayoutDashboard } from 'lucide-react';
 import { format, formatDistanceToNow } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
 import { QRCodeSVG } from 'qrcode.react';
@@ -13,6 +13,7 @@ import Badge from '../components/ui/Badge';
 import Pagination from '../components/ui/Pagination';
 import { Field } from '../components/ui/Field';
 import QrScanner from '../components/ui/QrScanner';
+import OverviewPanel from '../components/admin/OverviewPanel';
 import { adminService } from '../services';
 import { useAuth } from '../contexts/AuthContext';
 import { CATEGORIES, BUILDINGS, FEEDBACK_CATEGORIES } from '../config/constants';
@@ -30,7 +31,7 @@ const ROLE_BADGE = {
   user: 'system',
 };
 
-const SECTIONS = ['security', 'items', 'users', 'feedback'];
+const SECTIONS = ['overview', 'security', 'items', 'users', 'feedback'];
 const ADMIN_ONLY_SECTIONS = ['items', 'users', 'feedback'];
 
 export default function AdminPage() {
@@ -39,8 +40,10 @@ export default function AdminPage() {
   const [searchParams] = useSearchParams();
   // Deep link from a feedback notification/email: /admin?section=feedback
   const [section, setSection] = useState(() => {
+    // Admins land on the insights dashboard; guards keep the security desk.
+    const fallback = isAdmin ? 'overview' : 'security';
     const requested = searchParams.get('section');
-    if (!requested || !SECTIONS.includes(requested)) return 'security';
+    if (!requested || !SECTIONS.includes(requested)) return fallback;
     if (ADMIN_ONLY_SECTIONS.includes(requested) && !isAdmin) return 'security';
     return requested;
   });
@@ -555,6 +558,12 @@ export default function AdminPage() {
     <div className="pb-28 pt-4 px-4 md:pb-10 md:pr-6 md:pl-72 lg:pr-8">
       <aside className="fixed left-0 top-16 z-30 hidden h-[calc(100vh-4rem)] w-60 flex-col gap-1.5 overflow-y-auto border-r border-brand-800/70 bg-brand-950 p-3 md:flex">
         <SideBtn
+          active={section === 'overview'}
+          onClick={() => setSection('overview')}
+          icon={LayoutDashboard}
+          label="Overview"
+        />
+        <SideBtn
           active={section === 'security'}
           onClick={() => setSection('security')}
           icon={ShieldCheck}
@@ -592,6 +601,7 @@ export default function AdminPage() {
       <div className="min-w-0">
         <div className="mb-5 flex gap-2 rounded-2xl bg-white p-1.5 shadow-card dark:bg-slate-900 md:hidden">
           {[
+            { key: 'overview', icon: LayoutDashboard, label: 'Overview' },
             { key: 'security', icon: ShieldCheck, label: 'Security' },
             ...(isAdmin ? [{ key: 'items', icon: Package, label: 'Items' }] : []),
             ...(isAdmin ? [{ key: 'users', icon: Users, label: 'Users' }] : []),
@@ -620,7 +630,9 @@ export default function AdminPage() {
           ))}
         </div>
 
-        {section === 'security' ? (
+        {section === 'overview' ? (
+          <OverviewPanel />
+        ) : section === 'security' ? (
           <>
             <div className="mb-5 flex items-center justify-between">
               <div className="flex items-center gap-3">

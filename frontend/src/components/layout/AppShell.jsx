@@ -2,7 +2,9 @@ import { Outlet, useLocation } from 'react-router-dom';
 import SiteNav from './SiteNav';
 import { useReport } from '../../contexts/ReportContext';
 
-const HIDE_REPORT_CTA = ['/feedback'];
+// The report CTAs are for students browsing the feed. Staff working the admin
+// and guard desks never report items, so the buttons only get in the way there.
+const HIDE_REPORT_CTA = ['/feedback', '/admin', '/guard'];
 
 export default function AppShell() {
   const { openReport } = useReport();

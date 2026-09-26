@@ -154,6 +154,10 @@ export const adminService = {
     const { data } = await api.delete(`/admin/users/${id}`);
     return data;
   },
+  async getStats(range = 30) {
+    const { data } = await api.get('/admin/stats', { params: { range } });
+    return data;
+  },
   async getFeedback(status = '', category = '', search = '', page = 1, pageSize = 10) {
     const { data } = await api.get('/admin/feedback', {
       params: {
