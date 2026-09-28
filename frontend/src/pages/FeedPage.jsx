@@ -14,13 +14,16 @@ export default function FeedPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const urlType = searchParams.get('type');
+  const urlSearch = searchParams.get('search') || '';
+  const urlCategory = searchParams.get('category') || '';
+  const urlLocation = searchParams.get('location') || '';
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
     type: urlType === 'lost' || urlType === 'found' ? urlType : '',
-    category: '',
-    location: '',
-    search: '',
+    category: urlCategory,
+    location: urlLocation,
+    search: urlSearch,
   });
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(12);

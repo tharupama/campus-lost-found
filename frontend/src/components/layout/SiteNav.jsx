@@ -51,8 +51,10 @@ export default function SiteNav() {
   }
 
   return (
-    <header className="sticky top-0 z-40 border-b border-slate-200/70 bg-white/80 backdrop-blur-lg dark:border-slate-800 dark:bg-slate-900/80">
-      <div className="mx-auto flex max-w-full items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-10">
+    <header
+      className="sticky top-0 z-40 h-16 border-b border-slate-200/70 bg-white/80 backdrop-blur-lg dark:border-slate-800 dark:bg-slate-900/80"
+    >
+      <div className="mx-auto flex h-full max-w-full items-center justify-between gap-3 px-4 sm:px-6 lg:px-10">
         <Link to="/" className="flex items-center gap-2.5" aria-label="Ruhuna Lost & Found home">
           <UoRBadge size="md" />
           <span className="hidden leading-tight sm:block">
@@ -146,7 +148,7 @@ export default function SiteNav() {
 
           <button
             onClick={() => setOpen((v) => !v)}
-            className="rounded-xl p-2.5 text-slate-600 transition hover:bg-slate-100 md:hidden dark:text-slate-300 dark:hover:bg-slate-800"
+            className="flex h-10 w-10 items-center justify-center rounded-xl text-slate-600 transition hover:bg-slate-100 md:hidden dark:text-slate-300 dark:hover:bg-slate-800"
             aria-label={open ? 'Close menu' : 'Open menu'}
             aria-expanded={open}
           >
@@ -162,7 +164,7 @@ export default function SiteNav() {
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.2 }}
-            className="overflow-hidden border-t border-slate-200/70 bg-white/95 backdrop-blur-lg md:hidden dark:border-slate-800 dark:bg-slate-950/95"
+            className="absolute inset-x-0 top-full overflow-hidden border-t border-slate-200/70 bg-white/95 backdrop-blur-lg md:hidden dark:border-slate-800 dark:bg-slate-950/95"
             aria-label="Mobile"
           >
             <div className="mx-auto max-w-full space-y-1 px-4 py-4 sm:px-6 lg:px-10">

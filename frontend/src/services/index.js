@@ -98,6 +98,13 @@ export const feedbackService = {
   },
 };
 
+export const staffService = {
+  async getSecurityTeam() {
+    const { data } = await api.get('/staff/team');
+    return data;
+  },
+};
+
 export const chatService = {
   async send(messages) {
     const { data } = await api.post('/chat', { messages });

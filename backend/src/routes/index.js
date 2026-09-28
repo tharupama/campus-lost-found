@@ -7,6 +7,7 @@ const notificationRoutes = require('./notification.routes');
 const contactRoutes = require('./contact.routes');
 const feedbackRoutes = require('./feedback.routes');
 const chatRoutes = require('./chat.routes');
+const staffRoutes = require('./staff.routes');
 
 router.use('/auth', authRoutes);
 router.use('/items', itemRoutes);
@@ -16,5 +17,6 @@ router.use('/notifications', notificationRoutes);
 router.use('/contact', contactRoutes);
 router.use('/feedback', feedbackRoutes);
 router.use('/chat', chatRoutes);
+router.use('/staff', staffRoutes);
 
 module.exports = router;
