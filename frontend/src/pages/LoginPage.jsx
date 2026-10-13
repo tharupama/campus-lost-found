@@ -1,14 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Mail, Lock, UserRound, Loader2, ShieldCheck, Building2 } from 'lucide-react';
+import { Mail, Lock, UserRound, Loader2, ShieldCheck, Building2, MailCheck, Send } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuth } from '../contexts/AuthContext';
 import { DEMO_ACCOUNTS, GOOGLE_CLIENT_ID } from '../config/constants';
 import UoRBadge from '../components/ui/UoRBadge';
 
 export default function LoginPage() {
-  const { login, register, googleLogin } = useAuth();
+  const { login, register, googleLogin, resendVerification } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const next = searchParams.get('next');
@@ -18,6 +18,7 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [pendingVerificationEmail, setPendingVerificationEmail] = useState('');
 
   function redirectTarget(user) {
     // Only same-origin absolute paths, so `next` can never bounce off-site.
@@ -96,17 +97,36 @@ export default function LoginPage() {
     }
     setLoading(true);
     try {
-      const user =
-        mode === 'register'
-          ? await register({ username, email, password })
-          : await login(email, password);
-      toast.success(
-        mode === 'register' ? 'Account created — welcome!' : `Welcome back, ${user.name.split(' ')[0]}!`
-      );
-      localStorage.removeItem('clf_register_mode');
-      navigate(redirectTarget(user));
+      if (mode === 'register') {
+        await register({ username, email, password });
+        localStorage.removeItem('clf_register_mode');
+        setPendingVerificationEmail(email);
+      } else {
+        const user = await login(email, password);
+        toast.success(`Welcome back, ${user.name.split(' ')[0]}!`);
+        navigate(redirectTarget(user));
+      }
     } catch (err) {
-      toast.error(err.response?.data?.message || (mode === 'register' ? 'Registration failed' : 'Login failed'));
+      const data = err.response?.data;
+      if (data?.code === 'emailNotVerified') {
+        setPendingVerificationEmail(email);
+        toast.error('Please confirm your email before signing in.');
+      } else {
+        toast.error(data?.message || (mode === 'register' ? 'Registration failed' : 'Login failed'));
+      }
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function resendVerificationEmail() {
+    if (!pendingVerificationEmail) return;
+    setLoading(true);
+    try {
+      await resendVerification(pendingVerificationEmail);
+      toast.success('Confirmation email sent again — check your inbox.');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Could not resend the confirmation email');
     } finally {
       setLoading(false);
     }
@@ -140,9 +160,40 @@ export default function LoginPage() {
         </div>
 
         <div className="auth-card rounded-3xl bg-white p-6 shadow-2xl">
-          <h2 className="text-lg font-extrabold text-midnight">
-            {mode === 'register' ? 'Create your account' : 'Sign in with your campus account'}
-          </h2>
+          {pendingVerificationEmail ? (
+            <div className="flex flex-col items-center text-center">
+              <span className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
+                <MailCheck size={30} />
+              </span>
+              <h2 className="text-lg font-extrabold text-midnight">Confirm your email</h2>
+              <p className="mt-2 text-sm leading-relaxed text-slate-400">
+                We sent a confirmation link to <span className="font-semibold text-slate-600">{pendingVerificationEmail}</span>.
+                Click the link in the email to activate your account, then sign in.
+              </p>
+              <button
+                type="button"
+                disabled={loading}
+                onClick={resendVerificationEmail}
+                className="btn-primary mt-6 w-full"
+              >
+                {loading ? <Loader2 className="animate-spin" size={18} /> : <Send size={18} />} Resend confirmation email
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setPendingVerificationEmail('');
+                  switchMode('login');
+                }}
+                className="mt-3 text-sm font-semibold text-brand-600 hover:text-brand-700"
+              >
+                Back to sign in
+              </button>
+            </div>
+          ) : (
+            <>
+              <h2 className="text-lg font-extrabold text-midnight">
+                {mode === 'register' ? 'Create your account' : 'Sign in with your campus account'}
+              </h2>
           <p className="mb-5 mt-1 text-sm text-slate-400">
             {mode === 'register'
               ? 'One account to find and return things. You can add more details later.'
@@ -257,6 +308,8 @@ export default function LoginPage() {
               ? 'By creating an account you agree to the campus code of conduct.'
               : 'Having trouble? Visit the IT help desk to activate your campus SSO account.'}
           </p>
+            </>
+          )}
         </div>
       </motion.div>
     </div>

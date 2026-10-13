@@ -27,24 +27,28 @@ async function seed() {
     email: 'admin@campus.edu',
     password: 'Admin@123',
     role: 'admin',
+    isVerified: true,
   });
   const guard = await User.create({
     name: 'Marcus Reed',
     email: 'guard@campus.edu',
     password: 'Guard@123',
     role: 'guard',
+    isVerified: true,
   });
   const alex = await User.create({
     name: 'Alex Morgan',
     email: 'alex@student.edu',
     password: 'Student@123',
     role: 'student',
+    isVerified: true,
   });
   const maya = await User.create({
     name: 'Maya Chen',
     email: 'maya@student.edu',
     password: 'Student@123',
     role: 'student',
+    isVerified: true,
   });
 
   const foundItems = await Item.insertMany([

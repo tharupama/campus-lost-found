@@ -1,9 +1,11 @@
 const router = require('express').Router();
-const { login, register, googleAuth, forgotPassword, resetPassword, getMe, updateProfile } = require('../controllers/auth.controller');
+const { login, register, verifyEmail, resendVerification, googleAuth, forgotPassword, resetPassword, getMe, updateProfile } = require('../controllers/auth.controller');
 const { protect } = require('../middleware/auth.middleware');
 const upload = require('../middleware/upload.middleware');
 
 router.post('/register', register);
+router.post('/verify-email', verifyEmail);
+router.post('/resend-verification', resendVerification);
 router.post('/login', login);
 router.post('/google', googleAuth);
 router.post('/forgot-password', forgotPassword);

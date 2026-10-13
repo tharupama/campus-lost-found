@@ -4,11 +4,12 @@ const { OAuth2Client } = require('google-auth-library');
 const User = require('../models/User.model');
 const { processImage } = require('../services/upload.service');
 const { sendMail } = require('../config/email');
-const { renderForgotPassword, renderNotification } = require('../templates');
+const { renderForgotPassword, renderVerifyEmail, renderNotification } = require('../templates');
 
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 const RESET_TOKEN_TTL_MS = 60 * 60 * 1000; // 1 hour
+const VERIFY_TOKEN_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
 
 function hashToken(token) {
   return crypto.createHash('sha256').update(String(token)).digest('hex');
@@ -23,6 +24,17 @@ function signToken(user) {
   return jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET || 'campus-dev-secret', {
     expiresIn: '7d',
   });
+}
+
+async function sendVerificationEmail(user) {
+  const rawToken = crypto.randomBytes(32).toString('hex');
+  user.verificationToken = hashToken(rawToken);
+  user.verificationTokenExpires = new Date(Date.now() + VERIFY_TOKEN_TTL_MS);
+  await user.save();
+
+  const verifyUrl = `${frontendUrl()}/verify-email?token=${rawToken}`;
+  const { html, text } = renderVerifyEmail({ name: user.name, verifyUrl, expiryHours: 24 });
+  await sendMail({ to: user.email, subject: 'Confirm your email — activate your account', html, text });
 }
 
 exports.register = async (req, res, next) => {
@@ -43,9 +55,59 @@ exports.register = async (req, res, next) => {
       return res.status(409).json({ message: 'An account with this email already exists' });
     }
 
-    const user = await User.create({ name: uname, email: mail, password, role: 'student' });
-    user.password = undefined;
-    res.status(201).json({ token: signToken(user), user });
+    const user = await User.create({ name: uname, email: mail, password, role: 'student', isVerified: false });
+    await sendVerificationEmail(user);
+
+    res.status(201).json({
+      message: 'Account created. Check your email to confirm your address before signing in.',
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.verifyEmail = async (req, res, next) => {
+  try {
+    const { token } = req.body;
+    if (!token) {
+      return res.status(400).json({ message: 'Verification token is required' });
+    }
+
+    const user = await User.findOne({
+      verificationToken: hashToken(String(token)),
+      verificationTokenExpires: { $gt: new Date() },
+    });
+    if (!user) {
+      return res.status(400).json({ message: 'Verification link is invalid or has expired' });
+    }
+
+    user.isVerified = true;
+    user.verificationToken = null;
+    user.verificationTokenExpires = null;
+    await user.save();
+
+    res.status(200).json({ message: 'Email confirmed! You can now sign in.' });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.resendVerification = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+    const mail = String(email || '').toLowerCase().trim();
+    if (!mail) {
+      return res.status(400).json({ message: 'Email is required' });
+    }
+
+    const user = await User.findOne({ email: mail });
+    if (user) {
+      if (!user.isVerified) {
+        await sendVerificationEmail(user);
+      }
+    }
+
+    res.status(200).json({ message: 'If that email is pending confirmation, a new link has been sent.' });
   } catch (err) {
     next(err);
   }
@@ -60,6 +122,12 @@ exports.login = async (req, res, next) => {
     const user = await User.findOne({ email: String(email).toLowerCase().trim() }).select('+password');
     if (!user || !(await user.comparePassword(password))) {
       return res.status(401).json({ message: 'Invalid campus credentials' });
+    }
+    if (!user.isVerified) {
+      return res.status(403).json({
+        code: 'emailNotVerified',
+        message: 'Please confirm your email address before signing in. Check your inbox for the confirmation link.',
+      });
     }
     user.password = undefined;
     res.status(200).json({ token: signToken(user), user });
@@ -110,9 +178,11 @@ exports.googleAuth = async (req, res, next) => {
         password: crypto.randomBytes(24).toString('hex'),
         role: 'student',
         avatar: payload.picture || undefined,
+        isVerified: true,
       });
     } else if (!user.googleId) {
       user.googleId = gid;
+      user.isVerified = true;
       if (!user.avatar && payload.picture) user.avatar = payload.picture;
       await user.save();
     }

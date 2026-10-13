@@ -63,6 +63,14 @@ function renderForgotPassword({ name, resetUrl, expiryHours = 1 }) {
   };
 }
 
+function renderVerifyEmail({ name, verifyUrl, expiryHours = 24 }) {
+  const vars = baseVars({ name: name || 'there', verifyUrl: verifyUrl || '', expiryHours });
+  return {
+    html: fill(load('verify-email.html'), vars),
+    text: `Hi ${vars.name},\n\nWelcome aboard! Confirm your email address to activate your account. Open the link below to confirm your email. It is valid for the next ${vars.expiryHours} hour(s).\n\n${vars.verifyUrl}\n\nIf you didn't create this account, you can safely ignore this email.`,
+  };
+}
+
 function renderNotification({ type = 'Notification', title, message, actionUrl, actionLabel }) {
   const vars = baseVars({
     type: type || 'Notification',
@@ -132,4 +140,4 @@ function renderFeedbackReceived({ recipientName, senderName, senderEmail, catego
   return { html: fill(load('feedback-received.html'), vars), text: text.join('\n') };
 }
 
-module.exports = { renderForgotPassword, renderNotification, renderContactMessage, renderFeedbackReceived, escapeHtml };
+module.exports = { renderForgotPassword, renderVerifyEmail, renderNotification, renderContactMessage, renderFeedbackReceived, escapeHtml };

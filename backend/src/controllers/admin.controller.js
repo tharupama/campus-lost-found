@@ -72,6 +72,7 @@ exports.createUser = async (req, res, next) => {
       mobileNumber: mobileNumber !== undefined ? String(mobileNumber).trim() : undefined,
       address: address !== undefined ? String(address).trim() : undefined,
       password: String(password),
+      isVerified: true,
     });
 
     user.password = undefined;

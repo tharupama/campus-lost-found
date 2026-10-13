@@ -8,6 +8,7 @@ import AppShell from './components/layout/AppShell';
 import LoginPage from './pages/LoginPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
+import VerifyEmailPage from './pages/VerifyEmailPage';
 import LandingPage from './pages/LandingPage';
 import AboutPage from './pages/AboutPage';
 import ContactPage from './pages/ContactPage';
@@ -23,7 +24,7 @@ import Spinner from './components/ui/Spinner';
 import ChatWidget from './components/ui/ChatWidget';
 import BottomNav from './components/layout/BottomNav';
 
-const AUTH_PATHS = ['/login', '/forgot-password', '/reset-password'];
+const AUTH_PATHS = ['/login', '/forgot-password', '/reset-password', '/verify-email'];
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -80,6 +81,7 @@ export default function App() {
               <Route path="/login" element={<LoginPage />} />
               <Route path="/forgot-password" element={<ForgotPasswordPage />} />
               <Route path="/reset-password" element={<ResetPasswordPage />} />
+              <Route path="/verify-email" element={<VerifyEmailPage />} />
               <Route path="/" element={<LandingPage />} />
               <Route path="/about" element={<AboutPage />} />
               <Route path="/contact" element={<ContactPage />} />

@@ -41,11 +41,12 @@ export function AuthProvider({ children }) {
 
   const register = async ({ username, email, password }) => {
     const data = await authService.register({ username, email, password });
-    localStorage.setItem('clf_token', data.token);
-    localStorage.setItem('clf_user', JSON.stringify(data.user));
-    setToken(data.token);
-    setUser(data.user);
-    return data.user;
+    return data;
+  };
+
+  const resendVerification = async (email) => {
+    const data = await authService.resendVerification(email);
+    return data;
   };
 
   const googleLogin = async (credential) => {
@@ -71,7 +72,7 @@ export function AuthProvider({ children }) {
   };
 
   const value = useMemo(
-    () => ({ user, token, loading, login, register, googleLogin, logout, updateUser }),
+    () => ({ user, token, loading, login, register, googleLogin, resendVerification, logout, updateUser }),
     [user, token, loading]
   );
 
