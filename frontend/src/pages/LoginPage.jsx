@@ -7,6 +7,8 @@ import { useAuth } from '../contexts/AuthContext';
 import { DEMO_ACCOUNTS, GOOGLE_CLIENT_ID } from '../config/constants';
 import UoRBadge from '../components/ui/UoRBadge';
 
+const UNIVERSITY_EMAIL_RE = /^[A-Za-z0-9._%+-]+@fot\.ruh\.ac\.lk$/i;
+
 export default function LoginPage() {
   const { login, register, googleLogin, resendVerification } = useAuth();
   const navigate = useNavigate();
@@ -17,6 +19,8 @@ export default function LoginPage() {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirm, setConfirm] = useState('');
+  const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [pendingVerificationEmail, setPendingVerificationEmail] = useState('');
 
@@ -79,19 +83,52 @@ export default function LoginPage() {
     }
   }
 
+  function clearError(field) {
+    setErrors((e) => {
+      if (!e[field]) return e;
+      const next = { ...e };
+      delete next[field];
+      return next;
+    });
+  }
+
+  function validateRegister() {
+    const nextErrors = {};
+    if (!username.trim()) nextErrors.username = 'Username is required';
+    const mail = email.trim().toLowerCase();
+    if (!mail) {
+      nextErrors.email = 'Email is required';
+    } else if (!UNIVERSITY_EMAIL_RE.test(mail)) {
+      nextErrors.email = 'Use your Faculty of Technology student email — must end with @fot.ruh.ac.lk';
+    }
+    if (!password) {
+      nextErrors.password = 'Password is required';
+    } else if (password.length < 6) {
+      nextErrors.password = 'Password must be at least 6 characters';
+    }
+    if (!confirm) {
+      nextErrors.confirm = 'Confirm your password';
+    } else if (confirm !== password) {
+      nextErrors.confirm = 'Passwords do not match';
+    }
+    setErrors(nextErrors);
+    return Object.keys(nextErrors).length === 0;
+  }
+
   function switchMode(next) {
     localStorage.setItem('clf_register_mode', next);
     setMode(next);
     setUsername('');
     setEmail('');
     setPassword('');
+    setConfirm('');
+    setErrors({});
   }
 
   async function handleSubmit(e) {
     e.preventDefault();
     if (mode === 'register') {
-      if (!username || !email || !password) return toast.error('Fill in all the fields');
-      if (password.length < 6) return toast.error('Password must be at least 6 characters');
+      if (!validateRegister()) return;
     } else if (!email || !password) {
       return toast.error('Enter your campus email and password');
     }
@@ -202,38 +239,69 @@ export default function LoginPage() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {mode === 'register' && (
-              <div className="relative">
-                <UserRound className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                <input
-                  type="text"
-                  className="input-field pl-10"
-                  placeholder="Username"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  autoComplete="username"
-                />
+              <div>
+                <div className="relative">
+                  <UserRound className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                  <input
+                    type="text"
+                    className={`input-field pl-10${errors.username ? ' !border-red-400' : ''}`}
+                    placeholder="Username"
+                    value={username}
+                    onChange={(e) => { setUsername(e.target.value); clearError('username'); }}
+                    autoComplete="username"
+                  />
+                </div>
+                {errors.username && <p className="mt-1 text-xs font-medium text-red-500">{errors.username}</p>}
               </div>
             )}
-            <div className="relative">
-              <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-              <input
-                type="email"
-                className="input-field pl-10"
-                placeholder="you@campus.edu"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
+            <div>
+              <div className="relative">
+                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                <input
+                  type="email"
+                  className={`input-field pl-10${errors.email ? ' !border-red-400' : ''}`}
+                  placeholder={mode === 'register' ? 'you@fot.ruh.ac.lk' : 'you@campus.edu'}
+                  value={email}
+                  onChange={(e) => { setEmail(e.target.value); clearError('email'); }}
+                />
+              </div>
+              {mode === 'register' && (
+                <p className="mt-1 text-xs text-slate-400">
+                  Use your university email, e.g. name_2023xxxx@fot.ruh.ac.lk
+                </p>
+              )}
+              {errors.email && <p className="mt-1 text-xs font-medium text-red-500">{errors.email}</p>}
             </div>
-            <div className="relative">
-              <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-              <input
-                type="password"
-                className="input-field pl-10"
-                placeholder={mode === 'register' ? 'Password (min 6 characters)' : 'Password'}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
+            <div>
+              <div className="relative">
+                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                <input
+                  type="password"
+                  className={`input-field pl-10${errors.password ? ' !border-red-400' : ''}`}
+                  placeholder={mode === 'register' ? 'Password (min 6 characters)' : 'Password'}
+                  value={password}
+                  onChange={(e) => { setPassword(e.target.value); clearError('password'); clearError('confirm'); }}
+                  autoComplete={mode === 'register' ? 'new-password' : 'current-password'}
+                />
+              </div>
+              {errors.password && <p className="mt-1 text-xs font-medium text-red-500">{errors.password}</p>}
             </div>
+            {mode === 'register' && (
+              <div>
+                <div className="relative">
+                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                  <input
+                    type="password"
+                    className={`input-field pl-10${errors.confirm ? ' !border-red-400' : ''}`}
+                    placeholder="Confirm password"
+                    value={confirm}
+                    onChange={(e) => { setConfirm(e.target.value); clearError('confirm'); }}
+                    autoComplete="new-password"
+                  />
+                </div>
+                {errors.confirm && <p className="mt-1 text-xs font-medium text-red-500">{errors.confirm}</p>}
+              </div>
+            )}
             <button type="submit" disabled={loading} className="btn-primary w-full">
               {loading ? (
                 <Loader2 className="animate-spin" size={18} />
