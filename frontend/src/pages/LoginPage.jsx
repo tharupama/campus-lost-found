@@ -175,12 +175,18 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-brand-950 via-brand-900 to-brand-700 p-4">
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden p-4">
+      <img
+        src="/images/loginback.png"
+        alt=""
+        aria-hidden="true"
+        className="absolute inset-0 h-full w-full object-cover opacity-40"
+      />
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
-        className="w-full max-w-md"
+        className="relative z-10 w-full max-w-md"
       >
         <div className="mb-6 flex flex-col items-center text-center text-white">
           <motion.div
@@ -189,8 +195,8 @@ export default function LoginPage() {
           >
             <UoRBadge size="lg" />
           </motion.div>
-          <h1 className="text-2xl font-black">RUHUNA LOST &amp; FOUND</h1>
-          <p className="mt-1 flex items-center gap-1.5 text-sm text-white/70">
+          <h1 className="text-2xl font-black text-midnight dark:text-white">RUHUNA LOST &amp; FOUND</h1>
+          <p className="mt-1 flex items-center gap-1.5 text-sm text-midnight dark:text-white">
             <Building2 size={15} />
             {'Faculty of Technology · University of Ruhuna'}
           </p>

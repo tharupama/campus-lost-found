@@ -12,17 +12,23 @@ export function NotificationProvider({ children }) {
   const [pageSize, setPageSize] = useState(10);
   const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
+  const [loading, setLoading] = useState(true);
 
   const refresh = useCallback(async () => {
-    if (!user) return;
+    if (!user) {
+      setLoading(false);
+      return;
+    }
     try {
       const data = await notificationService.getMine(page, pageSize);
-      setNotifications(data.notifications);
-      setUnread(data.unread);
+      setNotifications(data.notifications || []);
+      setUnread(data.unread || 0);
       setTotal(data.total || 0);
       setTotalPages(data.totalPages || 1);
     } catch {
       // silent
+    } finally {
+      setLoading(false);
     }
   }, [user, page, pageSize]);
 
@@ -57,6 +63,7 @@ export function NotificationProvider({ children }) {
         totalPages,
         page,
         pageSize,
+        loading,
         setPage,
         setPageSize,
         refresh,

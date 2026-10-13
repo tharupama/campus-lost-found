@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { Bell, BellRing, Mail, MessageSquare, MessageSquareQuote } from 'lucide-react';
+import { Bell, BellRing, BellOff, Mail, MessageSquare, MessageSquareQuote } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import Swal from 'sweetalert2';
 import Spinner from '../components/ui/Spinner';
@@ -9,7 +9,7 @@ import { useNotifications } from '../contexts/NotificationContext';
 import { itemService } from '../services';
 
 export default function NotificationsPage() {
-  const { notifications, unread, markAllRead, total, totalPages, page, pageSize, setPage, setPageSize } = useNotifications();
+  const { notifications, unread, markAllRead, total, totalPages, page, pageSize, setPage, setPageSize, loading } = useNotifications();
   const navigate = useNavigate();
 
   async function handleClick(n) {
@@ -39,7 +39,7 @@ export default function NotificationsPage() {
     navigate(n.link);
   }
 
-  if (!notifications.length) return <Spinner full />;
+  if (loading) return <Spinner full />;
 
   return (
     <div className="mx-auto max-w-3xl px-4 pb-28 pt-4 md:pb-10">
@@ -65,31 +65,43 @@ export default function NotificationsPage() {
         )}
       </div>
 
-      <div className="space-y-2.5">
-        {notifications.map((n) => (
-          <button
-            key={n._id}
-            onClick={() => handleClick(n)}
-            className={`flex w-full items-start gap-3 rounded-2xl p-4 text-left shadow-card transition hover:shadow-glow ${
-              n.read ? 'bg-white dark:bg-slate-900' : 'bg-brand-50 ring-1 ring-brand-200 dark:bg-brand-500/10 dark:ring-brand-500/30'
-            }`}
-          >
+      {!notifications.length ? (
+        <div className="flex flex-col items-center justify-center rounded-2xl bg-white py-16 text-center shadow-card dark:bg-slate-900">
+          <span className="flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-500">
+            <BellOff size={28} />
+          </span>
+          <p className="mt-4 font-bold text-midnight dark:text-white">No notifications yet</p>
+          <p className="mt-1 max-w-xs text-sm text-slate-400">
+            You'll be alerted here about item matches and claim updates.
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-2.5">
+          {notifications.map((n) => (
+            <button
+              key={n._id}
+              onClick={() => handleClick(n)}
+              className={`flex w-full items-start gap-3 rounded-2xl p-4 text-left shadow-card transition hover:shadow-glow ${
+                n.read ? 'bg-white dark:bg-slate-900' : 'bg-brand-50 ring-1 ring-brand-200 dark:bg-brand-500/10 dark:ring-brand-500/30'
+              }`}
+            >
 <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white text-brand-500 shadow-card dark:bg-slate-800">
-                {n.type === 'match' ? <BellRing size={17} /> : n.type === 'claim' ? <HandIcon /> : n.type === 'contact' ? <MessageSquare size={17} /> : n.type === 'feedback' ? <MessageSquareQuote size={17} /> : <Mail size={17} />}
+                  {n.type === 'match' ? <BellRing size={17} /> : n.type === 'claim' ? <HandIcon /> : n.type === 'contact' ? <MessageSquare size={17} /> : n.type === 'feedback' ? <MessageSquareQuote size={17} /> : <Mail size={17} />}
+                </span>
+              <span className="min-w-0 flex-1">
+                <span className="mb-0.5 flex items-center justify-between gap-2">
+                  <span className="truncate text-sm font-bold text-midnight dark:text-white">{n.title}</span>
+                  <Badge color={n.type}>{n.type}</Badge>
+                </span>
+                <span className="block text-xs leading-relaxed text-slate-500 dark:text-slate-400">{n.message}</span>
+                <span className="mt-1 block text-[11px] text-slate-400">
+                  {formatDistanceToNow(new Date(n.createdAt), { addSuffix: true })}
+                </span>
               </span>
-            <span className="min-w-0 flex-1">
-              <span className="mb-0.5 flex items-center justify-between gap-2">
-                <span className="truncate text-sm font-bold text-midnight dark:text-white">{n.title}</span>
-                <Badge color={n.type}>{n.type}</Badge>
-              </span>
-              <span className="block text-xs leading-relaxed text-slate-500 dark:text-slate-400">{n.message}</span>
-              <span className="mt-1 block text-[11px] text-slate-400">
-                {formatDistanceToNow(new Date(n.createdAt), { addSuffix: true })}
-              </span>
-            </span>
-          </button>
-        ))}
-      </div>
+            </button>
+          ))}
+        </div>
+      )}
 
       <Pagination
         page={page}
