@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+﻿import { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, useScroll, useTransform, useSpring, useReducedMotion, AnimatePresence } from 'framer-motion';
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
@@ -20,10 +20,12 @@ import SiteNav from '../components/layout/SiteNav';
 import Footer from '../components/landing/Footer';
 import { useAuth } from '../contexts/AuthContext';
 import { useReport } from '../contexts/ReportContext';
+import { useTheme } from '../contexts/ThemeContext';
 import { itemService, staffService } from '../services';
 
-/* ─── High-Definition Photography ─── */
-const HERO_IMAGE = '/images/campus_hero.jpg';
+/* â”€â”€â”€ High-Definition Photography â”€â”€â”€ */
+const HERO_IMAGE_DAY = '/images/day.png';
+const HERO_IMAGE_NIGHT = '/images/night.png';
 const PARALLAX_IMAGE = '/images/vault_exhibit.jpg';
 
 function initials(name = '') {
@@ -35,7 +37,7 @@ function initials(name = '') {
     .join('');
 }
 
-/* ─── White Desert Signature Diamond Arrow ─── */
+/* â”€â”€â”€ White Desert Signature Diamond Arrow â”€â”€â”€ */
 function DiamondArrow({ className = 'w-3 h-3 text-current' }) {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 11 11" className={className}>
@@ -45,7 +47,7 @@ function DiamondArrow({ className = 'w-3 h-3 text-current' }) {
   );
 }
 
-/* ─── Hand-Drawn Delicate Scribble Flourish SVG ─── */
+/* â”€â”€â”€ Hand-Drawn Delicate Scribble Flourish SVG â”€â”€â”€ */
 function TitleScribble({ className = 'w-56 h-8 text-midnight/40 dark:text-slate-500' }) {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 191 62" fill="none" className={className}>
@@ -59,14 +61,14 @@ function TitleScribble({ className = 'w-56 h-8 text-midnight/40 dark:text-slate-
   );
 }
 
-/* ─── 3-Step Custody Protocol Data ─── */
+/* â”€â”€â”€ 3-Step Custody Protocol Data â”€â”€â”€ */
 const PROTOCOL_STEPS = [
   {
     step: '01',
     name: 'Secret-Mark Ingestion',
     tagline: 'Private verification markers only you possess',
     description:
-      'When filing a report, you record a unique secret mark — an engraved initial, a concealed scratch on the hinge, or an internal device wallpaper. This trait is encrypted and never shown publicly, preventing fraudulent claims.',
+      'When filing a report, you record a unique secret mark â€” an engraved initial, a concealed scratch on the hinge, or an internal device wallpaper. This trait is encrypted and never shown publicly, preventing fraudulent claims.',
     icon: KeyRound,
     highlights: ['End-to-end encrypted trait', 'Zero public image disclosure', 'Deterministic matching'],
   },
@@ -90,7 +92,7 @@ const PROTOCOL_STEPS = [
   },
 ];
 
-/* ─── Active Dispatches: live found items from the database ─── */
+/* â”€â”€â”€ Active Dispatches: live found items from the database â”€â”€â”€ */
 const dispatchStatus = (item) => {
   if (item.status === 'resolved') return 'Reunited';
   if (item.handoverStatus === 'pending') return 'Custody Handover Pending';
@@ -110,7 +112,7 @@ const dispatchAge = (date) => {
   return `${text} ago`;
 };
 
-/* ─── Frequently Asked Questions Data ─── */
+/* â”€â”€â”€ Frequently Asked Questions Data â”€â”€â”€ */
 const FAQS = [
   {
     q: 'How does the secret-mark claim challenge protect my valuables?',
@@ -138,6 +140,7 @@ export default function LandingPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { openReport } = useReport();
+  const { theme } = useTheme();
   const reduce = useReducedMotion();
 
   /* State */
@@ -254,7 +257,7 @@ export default function LandingPage() {
 
   return (
     <div className="relative min-h-screen bg-white dark:bg-slate-950 font-sans text-midnight dark:text-slate-100 antialiased">
-      {/* ─── White Desert Liquid Glass SVG Turbulence Filter Definition ─── */}
+      {/* â”€â”€â”€ White Desert Liquid Glass SVG Turbulence Filter Definition â”€â”€â”€ */}
       <svg style={{ position: 'absolute', width: 0, height: 0, overflow: 'hidden' }} aria-hidden="true">
         <defs>
           <filter id="white-desert-liquid-glass" x="0%" y="0%" width="100%" height="100%">
@@ -265,7 +268,7 @@ export default function LandingPage() {
         </defs>
       </svg>
 
-      {/* ─── Architectural Swiss Grid Lines (White Desert Signature) ─── */}
+      {/* â”€â”€â”€ Architectural Swiss Grid Lines (White Desert Signature) â”€â”€â”€ */}
       <div className="grid-overlay pointer-events-none" aria-hidden="true">
         <div className="mx-auto flex h-full max-w-7xl justify-between px-6 lg:px-12">
           <div className="grid-line left-6 lg:left-12" />
@@ -279,13 +282,13 @@ export default function LandingPage() {
       <SiteNav />
 
       <main>
-        {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        {/* â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
             1. HERO: "ANTARCTICA" INSPIRED FULL-BLEED BANNER
             - Full-bleed panoramic campus photography
             - Left italic subtitle, right pill button
             - Monumental architectural serif title at the bottom: "RUHUNA"
             - Realistic cloud/mist layer transition bleeding into white
-        ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
+        â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â” */}
         <section ref={heroRef} className="relative h-[100svh] min-h-[540px] sm:h-screen sm:min-h-[640px] overflow-hidden bg-midnight">
           {/* Panoramic Campus Background with Parallax */}
           <motion.div
@@ -293,7 +296,7 @@ export default function LandingPage() {
             style={reduce ? {} : { y: heroY }}
           >
             <img
-              src={HERO_IMAGE}
+              src={theme === 'dark' ? HERO_IMAGE_NIGHT : HERO_IMAGE_DAY}
               alt="Faculty of Technology campus pavilion at twilight"
               className="h-full w-full object-cover"
               loading="eager"
@@ -314,7 +317,7 @@ export default function LandingPage() {
                 </p>
                 <div className="mt-2 flex items-center gap-2 font-mono text-[11px] text-white/60">
                   <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-gold-400 animate-ping" />
-                  <span>06°03′N 80°13′E · {localTime || 'LIVE'}</span>
+                  <span>06Â°03â€²N 80Â°13â€²E Â· {localTime || 'LIVE'}</span>
                 </div>
               </div>
 
@@ -339,7 +342,7 @@ export default function LandingPage() {
             {/* Giant Monumental Title (Exact match to "ANTARCTICA" in screenshot) */}
             <div className="mt-8 sm:mt-auto sm:pb-10">
               <span className="block text-[11px] uppercase tracking-[0.18em] sm:text-xs sm:tracking-[0.35em] text-white/70 mb-2 font-mono">
-                Faculty of Technology · University of Ruhuna
+                Faculty of Technology Â· University of Ruhuna
               </span>
               <h1 className="font-extrabold uppercase text-[clamp(3.5rem,17vw,12rem)] sm:text-[clamp(4.5rem,14vw,12rem)] leading-[0.82] text-white tracking-tighter drop-shadow-md">
                 Ruhuna
@@ -351,12 +354,12 @@ export default function LandingPage() {
           <div className="mist-gradient-bottom pointer-events-none absolute inset-x-0 bottom-0 z-0 h-28 sm:h-40" />
         </section>
 
-        {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        {/* â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
             2. "THE LAST CONTINENT" INSPIRED INTRO SECTION (Pure White)
             - Expansive whitespace
             - Italic headline with hand-drawn SVG scribble
             - Indented statement paragraph in uppercase/light typography with scroll scrub
-        ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
+        â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â” */}
         <section ref={introRef} className="relative z-20 bg-white dark:bg-slate-950 py-24 sm:py-32 lg:py-36">
           <div className="mx-auto max-w-6xl px-6 lg:px-12">
             <div className="relative inline-block">
@@ -374,7 +377,7 @@ export default function LandingPage() {
                 className="lg:col-span-7 sm:pl-4 lg:pl-8 transition-opacity duration-300"
               >
                 <h2 className="text-2xl sm:text-3xl lg:text-4xl font-light text-midnight dark:text-slate-100 leading-relaxed uppercase tracking-wide">
-                  Vast, bustling and filled with daily discovery — misplacing a valuable belonging across the Faculty of Technology is common, but leaving it lost is not.
+                  Vast, bustling and filled with daily discovery â€” misplacing a valuable belonging across the Faculty of Technology is common, but leaving it lost is not.
                 </h2>
 
                 <div className="mt-10 flex flex-wrap gap-4 pt-6 border-t border-midnight/10 dark:border-white/10">
@@ -405,7 +408,7 @@ export default function LandingPage() {
                 <div className="mt-4 flex items-center justify-between border-t border-midnight/10 dark:border-white/10 pt-4 font-mono text-[11px] text-midnight/60 dark:text-slate-400">
                   <span className="flex items-center gap-1.5">
                     <MapPin size={13} className="text-brand-600 dark:text-brand-300" />
-                    06°03′12″ N 80°13′45″ E
+                    06Â°03â€²12â€³ N 80Â°13â€²45â€³ E
                   </span>
                   <span className="flex items-center gap-1.5">
                     <span className="h-1.5 w-1.5 rounded-full bg-gold-400" />
@@ -417,11 +420,11 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        {/* â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
             3. THE THREE PILLARS OF INTEGRITY (Interactive Custody Protocol)
             - White Desert Expedition Planning / Protocol translation
             - Interactive step tabs with deep editorial description
-        ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
+        â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â” */}
         <section className="bg-brand-50/50 dark:bg-slate-900 py-24 sm:py-32 border-y border-midnight/10 dark:border-white/10">
           <div className="mx-auto max-w-7xl px-6 lg:px-12">
             <div className="max-w-2xl">
@@ -527,11 +530,11 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        {/* â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
             4. TALL PARALLAX BANNER (Mountain Peak interlude from screenshot)
             - Full-bleed panoramic tall photography with scroll scrub
             - Floating narrative text column on the mid-left
-        ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
+        â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â” */}
         <section ref={tallBannerRef} className="relative h-[85vh] min-h-[520px] overflow-hidden bg-midnight">
           <motion.div
             className="absolute inset-0 -top-[20%] -bottom-[20%]"
@@ -556,12 +559,12 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        {/* â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
             5. "OUR TRIPS" CARD FLICK SECTION (Multi-panel accordion)
             - Direct translation of the Emperor penguins card-flick in screenshot
             - Active panel expands to reveal details, price/status & button
             - 3 vertical photo strips to the right that expand on hover/click
-        ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
+        â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â” */}
         <section className="bg-white dark:bg-slate-950 py-24 sm:py-32 lg:py-36">
           <div className="mx-auto max-w-7xl px-6 lg:px-12">
             <div className="text-center mb-16">
@@ -708,23 +711,23 @@ export default function LandingPage() {
                   onClick={() => go('/feed?type=found')}
                   className="font-mono text-xs uppercase tracking-[0.2em] text-brand-700 dark:text-brand-300 hover:text-gold-600 dark:hover:text-gold-400 transition-colors"
                 >
-                  View all items in campus custody →
+                  View all items in campus custody â†’
                 </button>
               </div>
             )}
           </div>
         </section>
 
-        {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        {/* â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
             7. COMMUNITY PULL-QUOTE SECTION (Patrick Woodhead quote in screenshot)
             - Large quotation mark
             - Inspiring community quote
             - Author signature flourish
-        ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
+        â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â” */}
         <section className="bg-white dark:bg-slate-950 py-24 sm:py-32 border-t border-midnight/10 dark:border-white/10">
           <div className="max-w-4xl mx-auto px-6 lg:px-12 text-center">
             <div className="text-6xl font-editorial italic text-midnight/25 dark:text-slate-600 leading-none mb-6">
-              “
+              â€œ
             </div>
 
             <p className="t-title-italic text-2xl sm:text-3xl lg:text-4xl text-midnight dark:text-slate-100 font-normal leading-relaxed">
@@ -743,7 +746,7 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        {/* â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
             8. "TO THE END OF THE EARTH" FLIGHT PATH & TELEMETRY
             (Exact reproduction of the black globe / flight path section in screenshot)
             - Deep black background
@@ -751,7 +754,7 @@ export default function LandingPage() {
             - Flight path SVG line connecting sectors with animated glow
             - Floating liquid-glass telemetry card on left
             - Floating video/radar instrument card on right
-        ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
+        â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â” */}
         <section
           ref={radarSectionRef}
           className="bg-midnight text-white py-24 sm:py-36 relative overflow-hidden"
@@ -762,7 +765,7 @@ export default function LandingPage() {
               <div className="grid gap-6 md:grid-cols-12 md:items-center text-center md:text-left">
                 <div className="md:col-span-4">
                   <p className="font-mono text-xs text-white/50 tracking-wider">
-                    06°03′12″ N 80°13′45″ E<br />
+                    06Â°03â€²12â€³ N 80Â°13â€²45â€³ E<br />
                     Matara Campus
                   </p>
                 </div>
@@ -778,7 +781,7 @@ export default function LandingPage() {
 
                 <div className="md:col-span-4 text-center md:text-right">
                   <p className="font-mono text-xs text-white/50 tracking-wider">
-                    SEC 04 · RUHUNA TECH<br />
+                    SEC 04 Â· RUHUNA TECH<br />
                     Central Guard Vault
                   </p>
                 </div>
@@ -887,9 +890,9 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-            9. CUSTODY GUARDIANS — live security roster from the database
-        ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
+        {/* â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+            9. CUSTODY GUARDIANS â€” live security roster from the database
+        â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â” */}
         <section className="bg-white dark:bg-slate-950 py-24 sm:py-32">
           <div className="mx-auto max-w-7xl px-6 lg:px-12">
             <div className="text-center mb-16">
@@ -1017,10 +1020,10 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        {/* â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
             10. FREQUENTLY ASKED QUESTIONS & GUIDES
             - Editorial interactive FAQ accordion
-        ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
+        â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â” */}
         <section className="bg-brand-50/50 dark:bg-slate-900 py-24 sm:py-32 border-t border-midnight/10 dark:border-white/10">
           <div className="mx-auto max-w-4xl px-6 lg:px-12">
             <div className="text-center mb-16">
@@ -1081,15 +1084,15 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        {/* â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
             11. "START PLANNING YOUR ADVENTURE" BANNER (From screenshot)
             - Panoramic full-bleed photo
             - Centered call to action
             - Liquid glass button
-        ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
+        â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â” */}
         <section className="relative h-[65vh] min-h-[440px] overflow-hidden bg-midnight flex items-center justify-center text-center">
           <img
-            src={HERO_IMAGE}
+            src={theme === 'dark' ? HERO_IMAGE_NIGHT : HERO_IMAGE_DAY}
             alt="Faculty of Technology campus"
             className="absolute inset-0 h-full w-full object-cover filter brightness-75"
             loading="lazy"
@@ -1124,12 +1127,16 @@ export default function LandingPage() {
         </section>
       </main>
 
-      {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+      {/* â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
           12. MONUMENTAL FOOTER (White Desert signature bottom in screenshot)
           - Gigantic "RUHUNA TECH" letters spanning the entire screen width
           - Clean navigational links and credits
-      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
+      â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â” */}
       <Footer />
     </div>
   );
 }
+
+
+
+
