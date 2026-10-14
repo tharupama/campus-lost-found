@@ -24,8 +24,8 @@ import { useTheme } from '../contexts/ThemeContext';
 import { itemService, staffService } from '../services';
 
 /* â”€â”€â”€ High-Definition Photography â”€â”€â”€ */
-const HERO_IMAGE_DAY = '/images/day.png';
-const HERO_IMAGE_NIGHT = '/images/night.png';
+const HERO_IMAGE_DAY = '/images/day.webp';
+const HERO_IMAGE_NIGHT = '/images/night.webp';
 const PARALLAX_IMAGE = '/images/vault_exhibit.jpg';
 
 function initials(name = '') {
