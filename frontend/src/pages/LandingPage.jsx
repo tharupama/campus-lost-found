@@ -727,7 +727,7 @@ export default function LandingPage() {
         <section className="bg-white dark:bg-slate-950 py-24 sm:py-32 border-t border-midnight/10 dark:border-white/10">
           <div className="max-w-4xl mx-auto px-6 lg:px-12 text-center">
             <div className="text-6xl font-editorial italic text-midnight/25 dark:text-slate-600 leading-none mb-6">
-              â€œ
+              Purposeful Integrity
             </div>
 
             <p className="t-title-italic text-2xl sm:text-3xl lg:text-4xl text-midnight dark:text-slate-100 font-normal leading-relaxed">
