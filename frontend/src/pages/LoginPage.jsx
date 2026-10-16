@@ -19,7 +19,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [mfaToken, setMfaToken] = useState(null);
   const [code, setCode] = useState('');
-  const [rememberDevice, setRememberDevice] = useState(true);
+  const [rememberDevice, setRememberDevice] = useState(false);
   const [recoveryMode, setRecoveryMode] = useState(false);
 
   function redirectTarget(user) {
