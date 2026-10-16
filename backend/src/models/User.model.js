@@ -14,8 +14,11 @@ const userSchema = new mongoose.Schema(
     resetPasswordToken: { type: String, default: null },
     resetPasswordExpires: { type: Date, default: null },
     isVerified: { type: Boolean, default: false },
-    verificationToken: { type: String, default: null },
-    verificationTokenExpires: { type: Date, default: null },
+    twoFactorEnabled: { type: Boolean, default: false },
+    twoFactorSecret: { type: String, default: null, select: false },
+    twoFactorPendingSecret: { type: String, default: null, select: false },
+    twoFactorRecoveryCodes: { type: [String], default: [], select: false },
+    twoFactorLastStep: { type: Number, default: 0, select: false },
   },
   { timestamps: true }
 );

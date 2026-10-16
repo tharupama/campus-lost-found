@@ -197,7 +197,7 @@ export default function SiteNav() {
                   </>
                 ) : (
                   <>
-                    <Link to="/login" onClick={() => setOpen(false)} className="btn-primary w-full justify-center">
+                    <Link to="/register" onClick={() => setOpen(false)} className="btn-primary w-full justify-center">
                       Get started
                     </Link>
                     <Link to="/login" onClick={() => setOpen(false)} className="btn-ghost w-full justify-center">

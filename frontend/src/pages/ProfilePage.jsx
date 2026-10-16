@@ -11,6 +11,11 @@ import {
   ChevronRight,
   QrCode,
   MapPin,
+  ShieldOff,
+  KeyRound,
+  Copy,
+  Check,
+  RefreshCw,
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { QRCodeSVG } from 'qrcode.react';
@@ -246,6 +251,8 @@ export default function ProfilePage() {
         </div>
       </form>
 
+      <TwoFactorCard />
+
       <Modal open={avatarOpen} onClose={() => setAvatarOpen(false)} title="Profile Picture">
         <div className="flex flex-col items-center justify-center gap-4">
           <div
@@ -472,5 +479,290 @@ function ActivityList({ items, empty, render }) {
         </div>
       ))}
     </div>
+  );
+}
+
+function RecoveryCodes({ codes, onDone, onCopy, copied }) {
+  return (
+    <div className="space-y-4">
+      <div className="rounded-2xl bg-amber-50 p-3 text-xs font-semibold text-amber-700 dark:bg-amber-500/10 dark:text-amber-400">
+        Save these codes somewhere safe. Each one works once if you lose your authenticator, and you will not see them again.
+      </div>
+      <div className="grid grid-cols-2 gap-2">
+        {codes.map((c) => (
+          <code
+            key={c}
+            className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-center text-sm font-bold tracking-wide text-midnight dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+          >
+            {c}
+          </code>
+        ))}
+      </div>
+      <div className="flex gap-2">
+        <button type="button" onClick={onCopy} className="btn-ghost flex-1">
+          {copied ? <Check size={16} /> : <Copy size={16} />} {copied ? 'Copied' : 'Copy all'}
+        </button>
+        <button type="button" onClick={onDone} className="btn-primary flex-1">
+          I&apos;ve saved them
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function TwoFactorCard() {
+  const [status, setStatus] = useState({ enabled: false, recoveryCodesRemaining: 0 });
+  const [statusLoading, setStatusLoading] = useState(true);
+  const [mode, setMode] = useState(null);
+  const [setup, setSetup] = useState(null);
+  const [setupLoading, setSetupLoading] = useState(false);
+  const [code, setCode] = useState('');
+  const [password, setPassword] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [codes, setCodes] = useState(null);
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    authService
+      .getTwoFactorStatus()
+      .then((data) => active && setStatus(data))
+      .catch(() => {})
+      .finally(() => active && setStatusLoading(false));
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  function reset() {
+    setMode(null);
+    setSetup(null);
+    setCode('');
+    setPassword('');
+    setCodes(null);
+    setCopied(false);
+    setBusy(false);
+  }
+
+  async function startEnable() {
+    setMode('enable');
+    setSetup(null);
+    setCodes(null);
+    setCode('');
+    setSetupLoading(true);
+    try {
+      const data = await authService.setupTwoFactor();
+      setSetup(data);
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Could not start 2FA setup');
+      setMode(null);
+    } finally {
+      setSetupLoading(false);
+    }
+  }
+
+  async function submitEnable(e) {
+    e.preventDefault();
+    if (code.trim().length < 6) return toast.error('Enter the 6-digit code');
+    setBusy(true);
+    try {
+      const data = await authService.enableTwoFactor(code.trim());
+      setCodes(data.recoveryCodes || []);
+      setStatus({ enabled: true, recoveryCodesRemaining: (data.recoveryCodes || []).length });
+      toast.success(data.message || 'Two-factor authentication enabled');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Could not enable 2FA');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function submitDisable(e) {
+    e.preventDefault();
+    if (!password) return toast.error('Enter your password');
+    setBusy(true);
+    try {
+      await authService.disableTwoFactor(password);
+      setStatus({ enabled: false, recoveryCodesRemaining: 0 });
+      toast.success('Two-factor authentication disabled');
+      reset();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Could not disable 2FA');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function submitRegenerate(e) {
+    e.preventDefault();
+    if (!password) return toast.error('Enter your password');
+    setBusy(true);
+    try {
+      const data = await authService.regenerateRecoveryCodes(password);
+      setCodes(data.recoveryCodes || []);
+      setStatus((s) => ({ ...s, recoveryCodesRemaining: (data.recoveryCodes || []).length }));
+      toast.success('New recovery codes generated');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Could not regenerate codes');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function copyCodes() {
+    try {
+      await navigator.clipboard.writeText((codes || []).join('\n'));
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast.error('Copy failed — select the codes manually');
+    }
+  }
+
+  return (
+    <>
+      <div className="mt-6 rounded-3xl bg-white p-5 shadow-card dark:bg-slate-900">
+        <div className="flex flex-wrap items-center gap-3">
+          <span
+            className={`flex h-11 w-11 items-center justify-center rounded-2xl ${
+              status.enabled ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10' : 'bg-slate-100 text-slate-400 dark:bg-slate-800'
+            }`}
+          >
+            {status.enabled ? <ShieldCheck size={20} /> : <ShieldOff size={20} />}
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="flex items-center gap-2 text-sm font-extrabold text-midnight dark:text-white">
+              Two-factor authentication
+              {status.enabled && (
+                <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400">
+                  On
+                </span>
+              )}
+            </p>
+            <p className="text-xs text-slate-400 dark:text-slate-500">
+              {statusLoading
+                ? 'Checking status…'
+                : status.enabled
+                  ? `Authenticator app · ${status.recoveryCodesRemaining} recovery code${status.recoveryCodesRemaining === 1 ? '' : 's'} left`
+                  : 'Add a code from your authenticator app for extra security.'}
+            </p>
+          </div>
+
+          <div className="flex shrink-0 flex-wrap items-center gap-2">
+            {status.enabled ? (
+              <>
+                <button type="button" onClick={() => { setMode('regen'); setCode(''); setPassword(''); setCodes(null); }} className="btn-ghost !px-3 !py-2 text-xs">
+                  <RefreshCw size={14} /> Recovery codes
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setMode('disable'); setPassword(''); }}
+                  className="btn-ghost !px-3 !py-2 text-xs !text-rose-600 hover:!bg-rose-50 dark:!text-rose-400 dark:hover:!bg-rose-500/10"
+                >
+                  <ShieldOff size={14} /> Disable
+                </button>
+              </>
+            ) : (
+              <button type="button" onClick={startEnable} disabled={statusLoading} className="btn-primary !px-4 !py-2 text-xs">
+                <ShieldCheck size={14} /> Enable 2FA
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <Modal open={mode === 'enable'} onClose={reset} title="Set up two-factor authentication">
+        {codes ? (
+          <RecoveryCodes codes={codes} onDone={reset} onCopy={copyCodes} copied={copied} />
+        ) : setupLoading || !setup ? (
+          <div className="flex items-center justify-center py-10 text-slate-400">
+            <Loader2 className="animate-spin" size={22} />
+          </div>
+        ) : (
+          <form onSubmit={submitEnable} className="space-y-4">
+            <p className="text-sm text-slate-500 dark:text-slate-400">
+              Scan this with Google Authenticator, Authy, or any TOTP app, then enter the 6-digit code it shows.
+            </p>
+            <div className="flex justify-center rounded-2xl border-4 border-midnight bg-white p-4 dark:border-white dark:bg-slate-900">
+              <QRCodeSVG value={setup.otpauthUrl} size={180} />
+            </div>
+            <div className="rounded-xl bg-slate-50 p-3 text-center dark:bg-slate-800">
+              <p className="text-[11px] font-bold uppercase tracking-wide text-slate-400">Can&apos;t scan it? Enter this key</p>
+              <code className="mt-1 block break-all text-xs font-bold text-midnight dark:text-white">{setup.secret}</code>
+            </div>
+            <Field label="Verification code">
+              <input
+                className="input-field text-center text-lg tracking-[0.4em]"
+                inputMode="numeric"
+                maxLength={6}
+                autoFocus
+                placeholder="••••••"
+                value={code}
+                onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
+              />
+            </Field>
+            <button type="submit" disabled={busy} className="btn-primary w-full">
+              {busy ? <Loader2 className="animate-spin" size={18} /> : <KeyRound size={16} />} Verify &amp; enable
+            </button>
+          </form>
+        )}
+      </Modal>
+
+      <Modal open={mode === 'disable'} onClose={reset} title="Disable two-factor authentication">
+        {codes ? (
+          <RecoveryCodes codes={codes} onDone={reset} onCopy={copyCodes} copied={copied} />
+        ) : (
+          <form onSubmit={submitDisable} className="space-y-4">
+            <p className="text-sm text-slate-500 dark:text-slate-400">
+              This removes the extra security and revokes all trusted devices. Enter your password to confirm.
+            </p>
+            <Field label="Password">
+              <input
+                type="password"
+                className="input-field"
+                autoFocus
+                placeholder="Current password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoComplete="current-password"
+              />
+            </Field>
+            <button
+              type="submit"
+              disabled={busy}
+              className="btn-primary w-full !bg-rose-600 hover:!bg-rose-700"
+            >
+              {busy ? <Loader2 className="animate-spin" size={18} /> : <ShieldOff size={16} />} Disable 2FA
+            </button>
+          </form>
+        )}
+      </Modal>
+
+      <Modal open={mode === 'regen'} onClose={reset} title="New recovery codes">
+        {codes ? (
+          <RecoveryCodes codes={codes} onDone={reset} onCopy={copyCodes} copied={copied} />
+        ) : (
+          <form onSubmit={submitRegenerate} className="space-y-4">
+            <p className="text-sm text-slate-500 dark:text-slate-400">
+              Generate a fresh set of recovery codes. Your old codes will stop working immediately.
+            </p>
+            <Field label="Password">
+              <input
+                type="password"
+                className="input-field"
+                autoFocus
+                placeholder="Current password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoComplete="current-password"
+              />
+            </Field>
+            <button type="submit" disabled={busy} className="btn-primary w-full">
+              {busy ? <Loader2 className="animate-spin" size={18} /> : <RefreshCw size={16} />} Generate codes
+            </button>
+          </form>
+        )}
+      </Modal>
+    </>
   );
 }

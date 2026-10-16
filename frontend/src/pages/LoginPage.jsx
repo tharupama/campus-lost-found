@@ -1,28 +1,26 @@
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Mail, Lock, UserRound, Loader2, ShieldCheck, Building2, MailCheck, Send } from 'lucide-react';
+import { Mail, Lock, UserRound, Loader2, ShieldCheck, Building2, Eye, EyeOff, KeyRound, ArrowLeft } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuth } from '../contexts/AuthContext';
-import { DEMO_ACCOUNTS, GOOGLE_CLIENT_ID } from '../config/constants';
+import { DEMO_ACCOUNTS } from '../config/constants';
 import UoRBadge from '../components/ui/UoRBadge';
-
-const UNIVERSITY_EMAIL_RE = /^[A-Za-z0-9._%+-]+@fot\.ruh\.ac\.lk$/i;
+import AuthModeToggle from '../components/ui/AuthModeToggle';
 
 export default function LoginPage() {
-  const { login, register, googleLogin, resendVerification } = useAuth();
+  const { login, completeTwoFactor } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const next = searchParams.get('next');
-  const gRef = useRef(null);
-  const [mode, setMode] = useState(localStorage.getItem('clf_register_mode') === 'register' ? 'register' : 'login');
-  const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [confirm, setConfirm] = useState('');
-  const [errors, setErrors] = useState({});
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [pendingVerificationEmail, setPendingVerificationEmail] = useState('');
+  const [mfaToken, setMfaToken] = useState(null);
+  const [code, setCode] = useState('');
+  const [rememberDevice, setRememberDevice] = useState(true);
+  const [recoveryMode, setRecoveryMode] = useState(false);
 
   function redirectTarget(user) {
     // Only same-origin absolute paths, so `next` can never bounce off-site.
@@ -31,139 +29,48 @@ export default function LoginPage() {
     return user.role === 'student' ? '/feed' : '/admin';
   }
 
-  useEffect(() => {
-    const scriptId = 'gsi-client';
-    const start = () => {
-      window.google?.accounts.id.initialize({
-        client_id: GOOGLE_CLIENT_ID,
-        ux_mode: 'popup',
-        callback: (resp) => handleGoogleCredential(resp?.credential),
-      });
-      if (gRef.current && window.google) {
-        window.google.accounts.id.renderButton(gRef.current, {
-          theme: 'outline',
-          size: 'large',
-          shape: 'rect',
-          text: 'continue_with',
-          width: 340,
-        });
-      }
-    };
-    if (!document.getElementById(scriptId)) {
-      const s = document.createElement('script');
-      s.id = scriptId;
-      s.src = 'https://accounts.google.com/gsi/client';
-      s.async = true;
-      s.defer = true;
-      s.onload = start;
-      document.body.appendChild(s);
-    } else {
-      start();
-    }
-    return () => {
-      const el = document.getElementById(scriptId);
-      if (el) el.remove();
-    };
-  }, []);
-
-  async function handleGoogleCredential(credential) {
-    if (!credential) return toast.error('Google sign-in returned no credential');
-    setLoading(true);
-    try {
-      const user = await googleLogin(credential);
-      toast.success(
-        user.name ? `Welcome, ${user.name.split(' ')[0]}!` : 'Welcome!'
-      );
-      localStorage.removeItem('clf_register_mode');
-      navigate(redirectTarget(user));
-    } catch (err) {
-      toast.error(err.response?.data?.message || 'Google sign-in failed');
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  function clearError(field) {
-    setErrors((e) => {
-      if (!e[field]) return e;
-      const next = { ...e };
-      delete next[field];
-      return next;
-    });
-  }
-
-  function validateRegister() {
-    const nextErrors = {};
-    if (!username.trim()) nextErrors.username = 'Username is required';
-    const mail = email.trim().toLowerCase();
-    if (!mail) {
-      nextErrors.email = 'Email is required';
-    } else if (!UNIVERSITY_EMAIL_RE.test(mail)) {
-      nextErrors.email = 'Use your Faculty of Technology student email — must end with @fot.ruh.ac.lk';
-    }
-    if (!password) {
-      nextErrors.password = 'Password is required';
-    } else if (password.length < 6) {
-      nextErrors.password = 'Password must be at least 6 characters';
-    }
-    if (!confirm) {
-      nextErrors.confirm = 'Confirm your password';
-    } else if (confirm !== password) {
-      nextErrors.confirm = 'Passwords do not match';
-    }
-    setErrors(nextErrors);
-    return Object.keys(nextErrors).length === 0;
-  }
-
-  function switchMode(next) {
-    localStorage.setItem('clf_register_mode', next);
-    setMode(next);
-    setUsername('');
-    setEmail('');
-    setPassword('');
-    setConfirm('');
-    setErrors({});
-  }
-
   async function handleSubmit(e) {
     e.preventDefault();
-    if (mode === 'register') {
-      if (!validateRegister()) return;
-    } else if (!email || !password) {
+    if (!email || !password) {
       return toast.error('Enter your campus email and password');
     }
     setLoading(true);
     try {
-      if (mode === 'register') {
-        await register({ username, email, password });
-        localStorage.removeItem('clf_register_mode');
-        setPendingVerificationEmail(email);
-      } else {
-        const user = await login(email, password);
-        toast.success(`Welcome back, ${user.name.split(' ')[0]}!`);
-        navigate(redirectTarget(user));
+      const result = await login(email, password);
+      if (result.mfaRequired) {
+        setMfaToken(result.mfaToken);
+        setCode('');
+        setRecoveryMode(false);
+        toast('Enter the code from your authenticator app');
+        return;
       }
+      const user = result.user;
+      toast.success(`Welcome back, ${user.name.split(' ')[0]}!`);
+      navigate(redirectTarget(user));
     } catch (err) {
       const data = err.response?.data;
       if (data?.code === 'emailNotVerified') {
-        setPendingVerificationEmail(email);
-        toast.error('Please confirm your email before signing in.');
+        toast.error(data?.message || 'Your account has not been verified yet. Visit the IT help desk to activate it.');
       } else {
-        toast.error(data?.message || (mode === 'register' ? 'Registration failed' : 'Login failed'));
+        toast.error(data?.message || 'Login failed');
       }
     } finally {
       setLoading(false);
     }
   }
 
-  async function resendVerificationEmail() {
-    if (!pendingVerificationEmail) return;
+  async function handleVerify(e) {
+    e.preventDefault();
+    if (!code.trim()) {
+      return toast.error(recoveryMode ? 'Enter a recovery code' : 'Enter the 6-digit code');
+    }
     setLoading(true);
     try {
-      await resendVerification(pendingVerificationEmail);
-      toast.success('Confirmation email sent again — check your inbox.');
+      const user = await completeTwoFactor({ mfaToken, code: code.trim(), rememberDevice });
+      toast.success(`Welcome back, ${user.name.split(' ')[0]}!`);
+      navigate(redirectTarget(user));
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Could not resend the confirmation email');
+      toast.error(err.response?.data?.message || 'Verification failed');
     } finally {
       setLoading(false);
     }
@@ -175,7 +82,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden p-4">
+    <div className="dark relative flex min-h-screen items-center justify-center overflow-hidden bg-slate-950 p-4">
       <img
         src="/images/loginback.webp"
         alt=""
@@ -195,162 +102,143 @@ export default function LoginPage() {
           >
             <UoRBadge size="lg" />
           </motion.div>
-          <h1 className="text-2xl font-black text-midnight dark:text-white">RUHUNA LOST &amp; FOUND</h1>
-          <p className="mt-1 flex items-center gap-1.5 text-sm text-midnight dark:text-white">
+          <h1 className="text-halo text-2xl font-black text-midnight dark:text-white">RUHUNA LOST &amp; FOUND</h1>
+          <p className="text-halo mt-1 flex items-center gap-1.5 text-sm text-midnight dark:text-white">
             <Building2 size={15} />
             {'Faculty of Technology · University of Ruhuna'}
           </p>
         </div>
 
         <div className="auth-card rounded-3xl bg-white p-6 shadow-2xl">
-          {pendingVerificationEmail ? (
-            <div className="flex flex-col items-center text-center">
-              <span className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
-                <MailCheck size={30} />
-              </span>
-              <h2 className="text-lg font-extrabold text-midnight">Confirm your email</h2>
-              <p className="mt-2 text-sm leading-relaxed text-slate-400">
-                We sent a confirmation link to <span className="font-semibold text-slate-600">{pendingVerificationEmail}</span>.
-                Click the link in the email to activate your account, then sign in.
-              </p>
-              <button
-                type="button"
-                disabled={loading}
-                onClick={resendVerificationEmail}
-                className="btn-primary mt-6 w-full"
-              >
-                {loading ? <Loader2 className="animate-spin" size={18} /> : <Send size={18} />} Resend confirmation email
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setPendingVerificationEmail('');
-                  switchMode('login');
-                }}
-                className="mt-3 text-sm font-semibold text-brand-600 hover:text-brand-700"
-              >
-                Back to sign in
-              </button>
-            </div>
-          ) : (
+          {mfaToken ? (
             <>
-              <h2 className="text-lg font-extrabold text-midnight">
-                {mode === 'register' ? 'Create your account' : 'Sign in with your campus account'}
-              </h2>
-          <p className="mb-5 mt-1 text-sm text-slate-400">
-            {mode === 'register'
-              ? 'One account to find and return things. You can add more details later.'
-              : 'Single sign-on — one account to find and return things.'}
-          </p>
+              <div className="mb-4 flex items-center gap-3">
+                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-50 text-brand-600">
+                  <ShieldCheck size={20} />
+                </span>
+                <div>
+                  <h2 className="text-lg font-extrabold text-midnight">Two-factor verification</h2>
+                  <p className="text-xs text-slate-400">
+                    {recoveryMode ? 'Enter one of your saved recovery codes.' : 'Enter the 6-digit code from your authenticator app.'}
+                  </p>
+                </div>
+              </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {mode === 'register' && (
-              <div>
+              <form onSubmit={handleVerify} className="space-y-4">
                 <div className="relative">
-                  <UserRound className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                  <KeyRound className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                   <input
                     type="text"
-                    className={`input-field pl-10${errors.username ? ' !border-red-400' : ''}`}
-                    placeholder="Username"
-                    value={username}
-                    onChange={(e) => { setUsername(e.target.value); clearError('username'); }}
-                    autoComplete="username"
+                    inputMode={recoveryMode ? 'text' : 'numeric'}
+                    autoFocus
+                    className="input-field pl-10 tracking-[0.3em]"
+                    placeholder={recoveryMode ? 'XXXXX-XXXXX' : '••••••'}
+                    maxLength={recoveryMode ? 11 : 6}
+                    value={code}
+                    onChange={(e) => setCode(e.target.value)}
+                    autoComplete="one-time-code"
                   />
                 </div>
-                {errors.username && <p className="mt-1 text-xs font-medium text-red-500">{errors.username}</p>}
+
+                {!recoveryMode && (
+                  <label className="flex cursor-pointer items-center gap-2 text-xs font-semibold text-slate-500">
+                    <input
+                      type="checkbox"
+                      checked={rememberDevice}
+                      onChange={(e) => setRememberDevice(e.target.checked)}
+                      className="h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500"
+                    />
+                    Remember this device for 30 days
+                  </label>
+                )}
+
+                <button type="submit" disabled={loading} className="btn-primary w-full">
+                  {loading ? <Loader2 className="animate-spin" size={18} /> : <span>Verify &amp; sign in</span>}
+                </button>
+              </form>
+
+              <div className="mt-4 flex items-center justify-between text-xs font-semibold">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setRecoveryMode((v) => !v);
+                    setCode('');
+                  }}
+                  className="text-brand-600 hover:text-brand-700"
+                >
+                  {recoveryMode ? 'Use authenticator code' : 'Use a recovery code'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMfaToken(null);
+                    setCode('');
+                    setRecoveryMode(false);
+                  }}
+                  className="inline-flex items-center gap-1 text-slate-400 hover:text-slate-600"
+                >
+                  <ArrowLeft size={13} /> Back
+                </button>
               </div>
-            )}
-            <div>
-              <div className="relative">
-                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                <input
-                  type="email"
-                  className={`input-field pl-10${errors.email ? ' !border-red-400' : ''}`}
-                  placeholder={mode === 'register' ? 'you@fot.ruh.ac.lk' : 'you@campus.edu'}
-                  value={email}
-                  onChange={(e) => { setEmail(e.target.value); clearError('email'); }}
-                />
-              </div>
-              {mode === 'register' && (
-                <p className="mt-1 text-xs text-slate-400">
-                  Use your university email, e.g. name_2023xxxx@fot.ruh.ac.lk
-                </p>
-              )}
-              {errors.email && <p className="mt-1 text-xs font-medium text-red-500">{errors.email}</p>}
-            </div>
-            <div>
-              <div className="relative">
-                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                <input
-                  type="password"
-                  className={`input-field pl-10${errors.password ? ' !border-red-400' : ''}`}
-                  placeholder={mode === 'register' ? 'Password (min 6 characters)' : 'Password'}
-                  value={password}
-                  onChange={(e) => { setPassword(e.target.value); clearError('password'); clearError('confirm'); }}
-                  autoComplete={mode === 'register' ? 'new-password' : 'current-password'}
-                />
-              </div>
-              {errors.password && <p className="mt-1 text-xs font-medium text-red-500">{errors.password}</p>}
-            </div>
-            {mode === 'register' && (
-              <div>
-                <div className="relative">
-                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                  <input
-                    type="password"
-                    className={`input-field pl-10${errors.confirm ? ' !border-red-400' : ''}`}
-                    placeholder="Confirm password"
-                    value={confirm}
-                    onChange={(e) => { setConfirm(e.target.value); clearError('confirm'); }}
-                    autoComplete="new-password"
-                  />
-                </div>
-                {errors.confirm && <p className="mt-1 text-xs font-medium text-red-500">{errors.confirm}</p>}
-              </div>
-            )}
-            <button type="submit" disabled={loading} className="btn-primary w-full">
-              {loading ? (
-                <Loader2 className="animate-spin" size={18} />
-              ) : mode === 'register' ? (
-                <span>Create Account</span>
-              ) : (
-                <span>Sign In</span>
-              )}
-            </button>
-          </form>
-
-          {mode === 'login' && (
-            <div className="mt-3 text-right">
-              <span
-                onClick={() => navigate('/forgot-password')}
-                className="cursor-pointer text-xs font-semibold text-brand-600 hover:text-brand-700"
-              >
-                Forgot password?
-              </span>
-            </div>
-          )}
-
-          <button
-            type="button"
-            onClick={() => switchMode(mode === 'register' ? 'login' : 'register')}
-            className="mt-4 w-full text-center text-sm font-semibold text-brand-600 hover:text-brand-700"
-          >
-            {mode === 'register' ? 'Already have an account? Sign in' : 'New student? Create an account'}
-          </button>
-
-          <div className="my-4 flex items-center gap-3">
-            <span className="h-px flex-1 bg-slate-200" />
-            <span className="text-[11px] font-bold uppercase text-slate-400">or</span>
-            <span className="h-px flex-1 bg-slate-200" />
-          </div>
-
-          <div ref={gRef} className="flex justify-center" />
-          <p className="mt-2 text-center text-[11px] text-slate-400">
-            {mode === 'register' ? 'Sign up with Google — add your mobile and address later in Profile.' : 'Continue with your Google account.'}
-          </p>
-
-          {mode === 'login' && (
+            </>
+          ) : (
             <>
+              <AuthModeToggle mode="login" />
+
+              <h2 className="text-lg font-extrabold text-midnight">Sign in with your campus account</h2>
+              <p className="mb-5 mt-1 text-sm text-slate-400">
+                Single sign-on — one account to find and return things.
+              </p>
+
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                  <div className="relative">
+                    <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                    <input
+                      type="email"
+                      className="input-field pl-10"
+                      placeholder="you@campus.edu"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      autoComplete="email"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <div className="relative">
+                    <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      className="input-field pl-10 pr-11"
+                      placeholder="Password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      autoComplete="current-password"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((v) => !v)}
+                      aria-label={showPassword ? 'Hide password' : 'Show password'}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 transition hover:text-slate-600"
+                    >
+                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
+                </div>
+                <button type="submit" disabled={loading} className="btn-primary w-full">
+                  {loading ? <Loader2 className="animate-spin" size={18} /> : <span>Sign In</span>}
+                </button>
+              </form>
+
+              <div className="mt-3 text-right">
+                <span
+                  onClick={() => navigate('/forgot-password')}
+                  className="cursor-pointer text-xs font-semibold text-brand-600 hover:text-brand-700"
+                >
+                  Forgot password?
+                </span>
+              </div>
+
               <div className="my-5 flex items-center gap-3">
                 <span className="h-px flex-1 bg-slate-200" />
                 <span className="text-[11px] font-bold uppercase text-slate-400">Demo access</span>
@@ -374,14 +262,10 @@ export default function LoginPage() {
                   );
                 })}
               </div>
-            </>
-          )}
 
-          <p className="mt-5 text-center text-[11px] leading-relaxed text-slate-400">
-            {mode === 'register'
-              ? 'By creating an account you agree to the campus code of conduct.'
-              : 'Having trouble? Visit the IT help desk to activate your campus SSO account.'}
-          </p>
+              <p className="mt-5 text-center text-[11px] leading-relaxed text-slate-400">
+                Having trouble? Visit the IT help desk to activate your campus SSO account.
+              </p>
             </>
           )}
         </div>

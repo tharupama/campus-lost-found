@@ -1,28 +1,52 @@
 import api from './apiClient';
 
 export const authService = {
-  async register(payload) {
-    const { data } = await api.post('/auth/register', payload);
+  async startRegistration(email) {
+    const { data } = await api.post('/auth/register/start', { email });
     return data;
   },
-  async verifyEmail(token) {
-    const { data } = await api.post('/auth/verify-email', { token });
+  async verifyRegistrationOtp(email, otp) {
+    const { data } = await api.post('/auth/register/verify-otp', { email, otp });
     return data;
   },
-  async resendVerification(email) {
-    const { data } = await api.post('/auth/resend-verification', { email });
+  async completeRegistration(payload) {
+    const { data } = await api.post('/auth/register/complete', payload);
     return data;
   },
   async googleLogin(credential) {
     const { data } = await api.post('/auth/google', { credential });
     return data;
   },
-  async login(email, password) {
-    const { data } = await api.post('/auth/login', { email, password });
+  async login(email, password, trustedDevice) {
+    const { data } = await api.post('/auth/login', { email, password, ...(trustedDevice ? { trustedDevice } : {}) });
     return data;
   },
   async getMe() {
     const { data } = await api.get('/auth/me');
+    return data;
+  },
+  async getTwoFactorStatus() {
+    const { data } = await api.get('/auth/2fa/status');
+    return data;
+  },
+  async setupTwoFactor() {
+    const { data } = await api.post('/auth/2fa/setup');
+    return data;
+  },
+  async enableTwoFactor(code) {
+    const { data } = await api.post('/auth/2fa/enable', { code });
+    return data;
+  },
+  async verifyTwoFactor({ mfaToken, code, rememberDevice }) {
+    const { data } = await api.post('/auth/2fa/verify', { mfaToken, code, rememberDevice });
+    return data;
+  },
+  async disableTwoFactor(password) {
+    const { data } = await api.post('/auth/2fa/disable', { password });
+    return data;
+  },
+  async regenerateRecoveryCodes(password) {
+    const { data } = await api.post('/auth/2fa/recovery-codes', { password });
     return data;
   },
   async forgotPassword(email) {

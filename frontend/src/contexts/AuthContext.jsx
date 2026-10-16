@@ -30,8 +30,8 @@ export function AuthProvider({ children }) {
     };
   }, [token]);
 
-  const login = async (email, password) => {
-    const data = await authService.login(email, password);
+  const applySession = (data) => {
+    if (data.trustedDevice) localStorage.setItem('clf_trusted_device', data.trustedDevice);
     localStorage.setItem('clf_token', data.token);
     localStorage.setItem('clf_user', JSON.stringify(data.user));
     setToken(data.token);
@@ -39,14 +39,33 @@ export function AuthProvider({ children }) {
     return data.user;
   };
 
-  const register = async ({ username, email, password }) => {
-    const data = await authService.register({ username, email, password });
-    return data;
+  const login = async (email, password) => {
+    const trustedDevice = localStorage.getItem('clf_trusted_device') || undefined;
+    const data = await authService.login(email, password, trustedDevice);
+    if (data.mfaRequired) {
+      return { mfaRequired: true, mfaToken: data.mfaToken };
+    }
+    return { user: applySession(data) };
   };
 
-  const resendVerification = async (email) => {
-    const data = await authService.resendVerification(email);
-    return data;
+  const completeTwoFactor = async ({ mfaToken, code, rememberDevice }) => {
+    const data = await authService.verifyTwoFactor({ mfaToken, code, rememberDevice });
+    applySession(data);
+    return data.user;
+  };
+
+  const startRegistration = async (email) => {
+    return authService.startRegistration(email);
+  };
+
+  const verifyRegistrationOtp = async (email, otp) => {
+    return authService.verifyRegistrationOtp(email, otp);
+  };
+
+  const completeRegistration = async (payload) => {
+    const data = await authService.completeRegistration(payload);
+    applySession(data);
+    return data.user;
   };
 
   const googleLogin = async (credential) => {
@@ -67,12 +86,13 @@ export function AuthProvider({ children }) {
   const logout = () => {
     localStorage.removeItem('clf_token');
     localStorage.removeItem('clf_user');
+    localStorage.removeItem('clf_trusted_device');
     setToken(null);
     setUser(null);
   };
 
   const value = useMemo(
-    () => ({ user, token, loading, login, register, googleLogin, resendVerification, logout, updateUser }),
+    () => ({ user, token, loading, login, completeTwoFactor, startRegistration, verifyRegistrationOtp, completeRegistration, googleLogin, logout, updateUser }),
     [user, token, loading]
   );
 
