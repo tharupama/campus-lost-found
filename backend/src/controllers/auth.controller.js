@@ -359,7 +359,7 @@ exports.forgotPassword = async (req, res, next) => {
       user.resetPasswordExpires = new Date(Date.now() + RESET_TOKEN_TTL_MS);
       await user.save();
 
-      const resetUrl = frontendUrl(`/reset-password?token=${rawToken}`, req);
+      const resetUrl = frontendUrl(`/reset-password?token=${rawToken}`, req, req.body?.origin);
       const { html, text } = renderForgotPassword({ name: user.name, resetUrl, expiryHours: 1 });
       await sendMail({ to: user.email, subject: 'Reset your password', html, text });
     }
