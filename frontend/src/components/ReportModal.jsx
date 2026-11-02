@@ -95,8 +95,8 @@ export default function ReportModal({ open, onClose, type: initialType, prefill 
       toast.error('Title, category and location are required');
       return;
     }
-    if (type === 'found' && form.date && form.date > today) {
-      toast.error('The found date cannot be in the future');
+    if (form.date && form.date > today) {
+      toast.error(`The ${type === 'lost' ? 'lost' : 'found'} date cannot be in the future`);
       return;
     }
     setSubmitting(true);
@@ -195,7 +195,7 @@ export default function ReportModal({ open, onClose, type: initialType, prefill 
 
         <div className="grid grid-cols-2 gap-3">
           <Field label={type === 'lost' ? 'Date lost' : 'Date found'}>
-            <input type="date" className="input-field" value={form.date} onChange={set('date')} max={type === 'found' ? today : undefined} required />
+            <input type="date" className="input-field" value={form.date} onChange={set('date')} max={today} required />
           </Field>
           <Field label="Status">
             <input className="input-field bg-slate-50 text-slate-500 dark:bg-slate-800 dark:text-slate-400" value="Active" disabled />
