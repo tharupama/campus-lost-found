@@ -429,8 +429,8 @@ export default function ProfilePage() {
       <Modal open={Boolean(qrClaim)} onClose={() => setQrClaim(null)} title="Your handover QR code">
         {qrClaim && (
           <div className="flex flex-col items-center gap-4">
-            <div className="rounded-2xl border-4 border-midnight bg-white p-4 dark:border-white dark:bg-slate-900">
-              <QRCodeSVG value={`${qrClaim._id}::${qrClaim.claimant}`} size={200} />
+            <div className="rounded-2xl border-4 border-midnight bg-white p-4">
+              <QRCodeSVG value={`${qrClaim._id}::${qrClaim.claimant}`} size={200} marginSize={4} bgColor="#ffffff" fgColor="#000000" />
             </div>
             <p className="text-center text-sm text-slate-500 dark:text-slate-400">
               Show this at the security desk for <span className="font-bold text-midnight dark:text-white">{qrClaim.item?.title}</span>.
@@ -683,8 +683,8 @@ function TwoFactorCard() {
             <p className="text-sm text-slate-500 dark:text-slate-400">
               Scan this with Google Authenticator, Authy, or any TOTP app, then enter the 6-digit code it shows.
             </p>
-            <div className="flex justify-center rounded-2xl border-4 border-midnight bg-white p-4 dark:border-white dark:bg-slate-900">
-              <QRCodeSVG value={setup.otpauthUrl} size={180} />
+            <div className="flex justify-center rounded-2xl border-4 border-midnight bg-white p-4">
+              <QRCodeSVG value={setup.otpauthUrl} size={180} marginSize={4} bgColor="#ffffff" fgColor="#000000" />
             </div>
             <div className="rounded-xl bg-slate-50 p-3 text-center dark:bg-slate-800">
               <p className="text-[11px] font-bold uppercase tracking-wide text-slate-400">Can&apos;t scan it? Enter this key</p>

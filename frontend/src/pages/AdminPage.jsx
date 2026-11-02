@@ -560,11 +560,19 @@ export default function AdminPage() {
   async function verifyCode(code) {
     const trimmed = (code || '').trim();
     if (!trimmed) {
-      toast.error('Paste the claimant\u2019s QR code');
+      toast.error('Scan or paste the claimant\u2019s QR code');
       return false;
     }
     const [claimId, ...rest] = trimmed.includes('::') ? trimmed.split('::') : [trimmed, ''];
-    return doHandover({ claimId, claimantId: rest.join('::') || claimId });
+    const claimantId = rest.join('::') || claimId;
+    if (!/^[a-f0-9]{24}$/i.test(claimId) || !/^[a-f0-9]{24}$/i.test(claimantId)) {
+      toast.error('That QR code is not a handover code. Ask the claimant to open it from My Claims.');
+      return false;
+    }
+    toast.loading('Verifying handover code\u2026', { id: 'handover' });
+    const ok = await doHandover({ claimId, claimantId });
+    toast.dismiss('handover');
+    return ok;
   }
 
   async function handleScan(e) {
@@ -1223,8 +1231,8 @@ export default function AdminPage() {
         {qrItem && (
           <Modal title="Claimant Handover QR" onClose={() => setQrItem(null)} open>
             <div className="flex flex-col items-center gap-4">
-              <div className="rounded-2xl border-4 border-midnight bg-white p-4 dark:border-white dark:bg-slate-900">
-                <QRCodeSVG value={`${qrItem.claim._id}::${qrItem.claim.claimant?._id}`} size={200} />
+              <div className="rounded-2xl border-4 border-midnight bg-white p-4">
+                <QRCodeSVG value={`${qrItem.claim._id}::${qrItem.claim.claimant?._id}`} size={200} marginSize={4} bgColor="#ffffff" fgColor="#000000" />
               </div>
               <p className="text-center text-sm text-slate-500 dark:text-slate-400">
                 Approved claimant for <span className="font-bold text-midnight dark:text-white">{qrItem.item.title}</span> is{' '}

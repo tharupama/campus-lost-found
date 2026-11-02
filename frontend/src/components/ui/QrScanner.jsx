@@ -53,6 +53,11 @@ export default function QrScanner({ onResult }) {
     setStarting(true);
     setError('');
     handledRef.current = false;
+    if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia) {
+      setError('Camera access needs HTTPS (or localhost). Use manual paste below, or open the site over a secure connection.');
+      setStarting(false);
+      return;
+    }
     try {
       const scanner = new Html5Qrcode('qr-reader-region', SCANNER_CONFIG);
       scannerRef.current = scanner;

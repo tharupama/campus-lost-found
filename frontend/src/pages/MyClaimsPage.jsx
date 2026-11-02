@@ -114,8 +114,8 @@ export default function MyClaimsPage() {
       <Modal open={Boolean(qrClaim)} onClose={() => setQrClaim(null)} title="Your handover QR code">
         {qrClaim && (
           <div className="flex flex-col items-center gap-4">
-            <div className="rounded-2xl border-4 border-midnight bg-white p-4 dark:border-white dark:bg-slate-900">
-              <QRCodeSVG value={`${qrClaim._id}::${qrClaim.claimant}`} size={220} />
+            <div className="rounded-2xl border-4 border-midnight bg-white p-4">
+              <QRCodeSVG value={`${qrClaim._id}::${qrClaim.claimant}`} size={220} marginSize={4} bgColor="#ffffff" fgColor="#000000" />
             </div>
             <p className="text-center text-sm text-slate-500 dark:text-slate-400">
               Show this at the security desk for{' '}
