@@ -1,6 +1,20 @@
 import { useEffect, useRef, useState } from 'react';
-import { Html5Qrcode } from 'html5-qrcode';
+import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode';
 import { Camera, Loader2, RotateCcw, AlertTriangle } from 'lucide-react';
+
+// Disable the experimental native BarcodeDetector: on several devices it either
+// fails to initialise the scanner or silently returns no results, which makes
+// the camera look like it is running while nothing is ever decoded. Forcing the
+// bundled ZXing decoder is slower but far more reliable for QR handover.
+const SCANNER_CONFIG = {
+  formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE],
+  useBarCodeDetectorIfSupported: false,
+};
+
+const SCAN_OPTIONS = {
+  fps: 10,
+  qrbox: { width: 240, height: 240 },
+};
 
 export default function QrScanner({ onResult }) {
   const scannerRef = useRef(null);
@@ -12,23 +26,27 @@ export default function QrScanner({ onResult }) {
   const stop = async () => {
     const s = scannerRef.current;
     scannerRef.current = null;
+    handledRef.current = true;
     if (s) {
       try {
         await s.stop();
-        s.clear();
       } catch {
         // already stopped
       }
+      try {
+        s.clear();
+      } catch {
+        // nothing rendered yet
+      }
     }
-    handledRef.current = false;
     setScanning(false);
   };
 
   useEffect(() => {
-    const current = stop;
     return () => {
-      void current();
+      void stop();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const start = async () => {
@@ -36,26 +54,43 @@ export default function QrScanner({ onResult }) {
     setError('');
     handledRef.current = false;
     try {
-      const scanner = new Html5Qrcode('qr-reader-region');
+      const scanner = new Html5Qrcode('qr-reader-region', SCANNER_CONFIG);
       scannerRef.current = scanner;
-      await scanner.start(
-        { facingMode: 'environment' },
-        { fps: 10, qrbox: { width: 240, height: 240 } },
-        async (decodedText) => {
-          if (handledRef.current) return;
-          handledRef.current = true;
-          await stop();
-          onResult(decodedText);
-        },
-        () => {}
-      );
-      setScanning(true);
+
+      const handleScan = async (decodedText) => {
+        if (handledRef.current) return;
+        handledRef.current = true;
+        await stop();
+        onResult(decodedText);
+      };
+
+      const ignoreError = () => {};
+
+      try {
+        await scanner.start({ facingMode: 'environment' }, SCAN_OPTIONS, handleScan, ignoreError);
+      } catch (environmentError) {
+        // Desktops and some tablets have no rear camera, so `environment` fails.
+        // Fall back to whatever camera is available instead of giving up.
+        const cameras = await Html5Qrcode.getCameras().catch(() => []);
+        if (!cameras.length) throw environmentError;
+        handledRef.current = false;
+        await scanner.start(cameras[0].id, SCAN_OPTIONS, handleScan, ignoreError);
+      }
+
+      if (scannerRef.current === scanner) setScanning(true);
     } catch (e) {
+      const message = typeof e === 'string' ? e : e?.message || '';
       setError(
-        e?.name === 'NotAllowedError'
+        /permission|denied|notallowed|not allowed/i.test(message)
           ? 'Camera permission denied — allow camera access or use manual paste below.'
           : 'Camera unavailable on this device — use manual paste below.'
       );
+      try {
+        scannerRef.current?.clear();
+      } catch {
+        // nothing rendered yet
+      }
+      scannerRef.current = null;
       setScanning(false);
     } finally {
       setStarting(false);
