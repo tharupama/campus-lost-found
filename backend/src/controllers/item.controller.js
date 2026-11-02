@@ -48,15 +48,20 @@ exports.getItems = async (req, res, next) => {
 
 exports.getItem = async (req, res, next) => {
   try {
-    const query = Item.findById(req.params.id).populate('createdBy', 'name email avatar');
-    if (req.user && ['admin', 'guard'].includes(req.user.role)) {
-      query.select('+secretFeature');
-    } else {
-      query.select('-secretFeature');
-    }
+    const query = Item.findById(req.params.id)
+      .populate('createdBy', 'name email avatar')
+      .select('+secretFeature');
     const item = await query;
     if (!item) return res.status(404).json({ message: 'Item not found' });
-    res.status(200).json({ item });
+
+    const payload = item.toObject ? item.toObject() : { ...item };
+    const hasSecretMark = Boolean(String(payload.secretFeature || '').trim());
+    if (!(req.user && ['admin', 'guard'].includes(req.user.role))) {
+      delete payload.secretFeature;
+    }
+    payload.hasSecretMark = hasSecretMark;
+
+    res.status(200).json({ item: payload });
   } catch (err) {
     next(err);
   }

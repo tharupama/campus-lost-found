@@ -5,8 +5,8 @@ const { parsePagination, pageMeta } = require('../utils/pagination');
 exports.createClaim = async (req, res, next) => {
   try {
     const { itemId, proofAnswer, note, contactNumber } = req.body;
-    if (!itemId || !proofAnswer) {
-      return res.status(400).json({ message: 'Item and proof answer are required' });
+    if (!itemId) {
+      return res.status(400).json({ message: 'Item is required' });
     }
     const phone = String(contactNumber || '').trim();
     if (!phone) {

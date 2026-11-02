@@ -94,11 +94,21 @@ test('User hides passwords and two-factor secrets from queries', () => {
   }
 });
 
-test('Claim requires an item, claimant, contact number and proof answer', () => {
+test('Claim requires an item, claimant and contact number, but proof is optional', () => {
   const errors = errorsOf(new Claim({}));
-  for (const field of ['item', 'claimant', 'contactNumber', 'proofAnswer']) {
+  for (const field of ['item', 'claimant', 'contactNumber']) {
     assert.ok(errors.includes(field), `expected a validation error for ${field}`);
   }
+  assert.ok(!errors.includes('proofAnswer'), 'proofAnswer should be optional');
+});
+
+test('Claim defaults proofAnswer to an empty string', () => {
+  const claim = new Claim({
+    item: new Types.ObjectId(),
+    claimant: new Types.ObjectId(),
+    contactNumber: '0712345678',
+  });
+  assert.equal(claim.proofAnswer, '');
 });
 
 test('Claim defaults to pending and rejects unknown statuses', () => {

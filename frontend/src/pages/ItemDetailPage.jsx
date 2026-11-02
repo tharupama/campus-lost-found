@@ -48,7 +48,6 @@ export default function ItemDetailPage() {
 
   async function submitClaim(e) {
     e.preventDefault();
-    if (!proof.trim()) return toast.error('Describe your proof or secret mark');
     if (!contactNumber.trim()) return toast.error('Add a contact number so security can reach you');
     setSubmitting(true);
     try {
@@ -71,6 +70,7 @@ export default function ItemDetailPage() {
   }
 
   const isFound = item.type === 'found';
+  const hasSecretMark = Boolean(item.hasSecretMark);
 
   return (
     <div className="mx-auto max-w-3xl px-4 pb-28 pt-4">
@@ -115,7 +115,7 @@ export default function ItemDetailPage() {
 
           <div className="flex items-center justify-between border-t border-slate-100 pt-3 text-xs text-slate-400 dark:border-slate-800">
             <span>Reported by <span className="font-semibold text-slate-600 dark:text-slate-300">{item.createdBy?.name}</span></span>
-            {isFound && item.status === 'active' && (
+            {isFound && hasSecretMark && item.status === 'active' && (
               <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-600">
                 <KeyRound size={12} /> Owner unlocked by secret mark
               </span>
@@ -129,7 +129,8 @@ export default function ItemDetailPage() {
                   <HandCoins size={18} /> This Is Mine!
                 </button>
                 <p className="text-center text-[11px] text-slate-400">
-                  This is a <span className="font-semibold text-emerald-600">Found</span> item. If it's yours, claim it and answer the secret mark.
+                  This is a <span className="font-semibold text-emerald-600">Found</span> item. If it's yours, claim it and{' '}
+                  {hasSecretMark ? 'answer the secret mark.' : 'describe identifying details.'}
                 </p>
               </>
             ) : (
@@ -166,12 +167,12 @@ export default function ItemDetailPage() {
       <Modal open={claimOpen} onClose={() => setClaimOpen(false)} title="Claim this item">
         <form onSubmit={submitClaim} className="space-y-4">
           <div className="rounded-2xl bg-amber-50 p-4 text-sm text-amber-700 dark:bg-amber-500/10 dark:text-amber-300">
-            {isFound
-              ? 'This item has a secret mark set by the finder. To prove it is yours, describe the secret mark exactly as you remember it.'
-              : 'Describe identifying details only the real owner would know — color, stickers, scratches, contents, etc.'}
+            {isFound && hasSecretMark
+              ? 'This item has a secret mark set by the finder. If you know it, describe it exactly as you remember it — security will consider it when reviewing your claim.'
+              : 'The finder did not add a secret mark. Describe identifying details only the real owner would know — color, stickers, scratches, contents, etc.'}
           </div>
-          <Field label={isFound ? 'Secret mark answer' : 'Proof details'}>
-            <textarea className="input-field min-h-24 resize-none" value={proof} onChange={(e) => setProof(e.target.value)} placeholder="Type your answer…" required />
+          <Field label={isFound && hasSecretMark ? 'Secret mark answer (optional)' : 'Proof details (optional)'}>
+            <textarea className="input-field min-h-24 resize-none" value={proof} onChange={(e) => setProof(e.target.value)} placeholder="Type your answer…" />
           </Field>
           <Field label="Contact Number" hint="Security calls or texts this number to reach you for pickup">
             <input

@@ -80,10 +80,6 @@ export default function ReportModal({ open, onClose, type: initialType, prefill 
       toast.error('Title, category and location are required');
       return;
     }
-    if (type === 'found' && !form.secretFeature.trim()) {
-      toast.error('Add a Secret Mark so the right owner can prove it\'s theirs');
-      return;
-    }
     setSubmitting(true);
     try {
       const fd = new FormData();
@@ -182,7 +178,7 @@ export default function ReportModal({ open, onClose, type: initialType, prefill 
 
         {type === 'found' && (
           <Field
-            label="Secret Mark"
+            label="Secret Mark (optional)"
             hint="Hidden from the public feed. The right owner must describe it to unlock a claim."
           >
             <div className="relative">
@@ -192,7 +188,6 @@ export default function ReportModal({ open, onClose, type: initialType, prefill 
                 value={form.secretFeature}
                 onChange={set('secretFeature')}
                 placeholder="e.g. star scratch on left ear cup"
-                required
               />
               <button
                 type="button"

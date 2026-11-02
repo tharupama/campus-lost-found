@@ -1536,7 +1536,7 @@ function ClaimReviewCard({ claim, onApprove, onReject }) {
             </p>
           )}
           <p className="mt-2 rounded-lg bg-white p-2.5 text-xs leading-relaxed text-slate-600 dark:bg-slate-900 dark:text-slate-300">
-            <span className="font-semibold">Proof:</span> “{claim.proofAnswer}”
+            <span className="font-semibold">Proof:</span> {claim.proofAnswer ? `“${claim.proofAnswer}”` : '— (not provided)'}
           </p>
           {claim.note && <p className="mt-1.5 text-[11px] italic text-slate-400 dark:text-slate-500">note: {claim.note}</p>}
         </div>
@@ -1547,7 +1547,11 @@ function ClaimReviewCard({ claim, onApprove, onReject }) {
           </p>
           {item?.type === 'found' ? (
             <p className="rounded-lg bg-white p-2.5 text-xs leading-relaxed text-slate-600 dark:bg-slate-900 dark:text-slate-300">
-              <span className="font-semibold">Finder stored:</span> “{item.secretFeature || '—'}”
+              {item.secretFeature ? (
+                <><span className="font-semibold">Finder stored:</span> “{item.secretFeature}”</>
+              ) : (
+                'No secret mark was set for this item.'
+              )}
             </p>
           ) : (
             <p className="rounded-lg bg-white p-2.5 text-xs leading-relaxed text-slate-600 dark:bg-slate-900 dark:text-slate-300">

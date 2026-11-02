@@ -77,36 +77,52 @@ test('getItems clamps the page size to 60', async (t) => {
   assert.equal(res.body.pageSize, 60);
 });
 
-test('getItem hides the secret feature from anonymous users', async (t) => {
+test('getItem hides the secret feature from anonymous users but reports whether one exists', async (t) => {
   const capture = {};
-  t.mock.method(Item, 'findById', () => queryChain({ _id: '1', title: 'Wallet' }, capture));
+  t.mock.method(Item, 'findById', () => queryChain({ _id: '1', title: 'Wallet', secretFeature: 'Sticker inside' }, capture));
 
   const res = createRes();
   await getItem(createReq({ params: { id: '1' } }), res, createNext());
 
   assert.equal(res.statusCode, 200);
-  assert.deepEqual(capture.select[0], ['-secretFeature']);
+  assert.deepEqual(capture.select[0], ['+secretFeature']);
+  assert.equal(res.body.item.secretFeature, undefined);
+  assert.equal(res.body.item.hasSecretMark, true);
 });
 
 test('getItem exposes the secret feature only to admin and guard roles', async (t) => {
   for (const role of ['admin', 'guard']) {
     const capture = {};
-    t.mock.method(Item, 'findById', () => queryChain({ _id: '1' }, capture));
+    t.mock.method(Item, 'findById', () => queryChain({ _id: '1', secretFeature: 'Sticker inside' }, capture));
 
     const res = createRes();
     await getItem(createReq({ params: { id: '1' }, user: { role } }), res, createNext());
 
     assert.deepEqual(capture.select[0], ['+secretFeature'], `${role} should see secretFeature`);
+    assert.equal(res.body.item.secretFeature, 'Sticker inside');
+    assert.equal(res.body.item.hasSecretMark, true);
   }
 });
 
 test('getItem still hides the secret feature from students', async (t) => {
   const capture = {};
-  t.mock.method(Item, 'findById', () => queryChain({ _id: '1' }, capture));
+  t.mock.method(Item, 'findById', () => queryChain({ _id: '1', secretFeature: 'Sticker inside' }, capture));
 
-  await getItem(createReq({ params: { id: '1' }, user: { role: 'student' } }), createRes(), createNext());
+  const res = createRes();
+  await getItem(createReq({ params: { id: '1' }, user: { role: 'student' } }), res, createNext());
 
-  assert.deepEqual(capture.select[0], ['-secretFeature']);
+  assert.deepEqual(capture.select[0], ['+secretFeature']);
+  assert.equal(res.body.item.secretFeature, undefined);
+  assert.equal(res.body.item.hasSecretMark, true);
+});
+
+test('getItem reports no secret mark when the stored value is empty', async (t) => {
+  t.mock.method(Item, 'findById', () => queryChain({ _id: '1', secretFeature: '   ' }));
+
+  const res = createRes();
+  await getItem(createReq({ params: { id: '1' } }), res, createNext());
+
+  assert.equal(res.body.item.hasSecretMark, false);
 });
 
 test('getItem returns 404 when the item does not exist', async (t) => {

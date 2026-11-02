@@ -17,13 +17,30 @@ function validBody(overrides = {}) {
   };
 }
 
-test('createClaim requires an item and a proof answer', async () => {
-  for (const body of [{}, { itemId: new ObjectId() }, { proofAnswer: 'x' }]) {
+test('createClaim requires an item', async () => {
+  for (const body of [{}, { proofAnswer: 'x' }]) {
     const res = createRes();
     await createClaim(createReq({ user: { _id: claimantId }, body }), res, createNext());
     assert.equal(res.statusCode, 400);
-    assert.match(res.body.message, /proof answer are required/i);
+    assert.match(res.body.message, /item is required/i);
   }
+});
+
+test('createClaim accepts a claim without a proof answer', async (t) => {
+  const itemId = new ObjectId();
+  t.mock.method(Item, 'findById', async () => ({ _id: itemId, status: 'active', createdBy: ownerId }));
+  t.mock.method(Claim, 'findOne', async () => null);
+  const create = t.mock.method(Claim, 'create', async (doc) => ({ _id: new ObjectId(), ...doc }));
+
+  const res = createRes();
+  await createClaim(
+    createReq({ user: { _id: claimantId }, body: { itemId, contactNumber: '0712345678' } }),
+    res,
+    createNext()
+  );
+
+  assert.equal(res.statusCode, 201);
+  assert.equal(create.mock.calls[0].arguments[0].proofAnswer, undefined);
 });
 
 test('createClaim requires a contact number', async () => {
