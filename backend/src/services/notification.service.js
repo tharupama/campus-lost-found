@@ -2,11 +2,7 @@ const Notification = require('../models/Notification.model');
 const User = require('../models/User.model');
 const { sendMail } = require('../config/email');
 const { renderNotification, renderContactMessage, renderFeedbackReceived } = require('../templates');
-
-function frontendUrl(link = '') {
-  const base = process.env.FRONTEND_URL || process.env.CLIENT_URL || 'http://localhost:5173';
-  return link ? `${base}${link}` : base;
-}
+const { frontendUrl } = require('../utils/frontendUrl');
 
 function emailTypeLabel(type) {
   if (type === 'match') return 'Auto-match alert';

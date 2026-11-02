@@ -9,6 +9,7 @@ const { sendMail } = require('../config/email');
 const { renderForgotPassword, renderOtp, renderNotification } = require('../templates');
 const { generateSecret, verifyTotp, keyUri } = require('../services/totp.service');
 const { encrypt, decrypt, randomToken } = require('../services/crypto.service');
+const { frontendUrl } = require('../utils/frontendUrl');
 
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
@@ -27,11 +28,6 @@ const MOBILE_RE = /^[0-9+\-\s()]+$/;
 
 function hashToken(token) {
   return crypto.createHash('sha256').update(String(token)).digest('hex');
-}
-
-function frontendUrl(link = '') {
-  const base = process.env.FRONTEND_URL || process.env.CLIENT_URL || 'http://localhost:5173';
-  return link ? `${base}${link}` : base;
 }
 
 function signToken(user) {
@@ -363,7 +359,7 @@ exports.forgotPassword = async (req, res, next) => {
       user.resetPasswordExpires = new Date(Date.now() + RESET_TOKEN_TTL_MS);
       await user.save();
 
-      const resetUrl = `${frontendUrl()}/reset-password?token=${rawToken}`;
+      const resetUrl = frontendUrl(`/reset-password?token=${rawToken}`, req);
       const { html, text } = renderForgotPassword({ name: user.name, resetUrl, expiryHours: 1 });
       await sendMail({ to: user.email, subject: 'Reset your password', html, text });
     }
