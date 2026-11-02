@@ -44,6 +44,21 @@ test('processImage compresses uploads into a JPEG data URI when Cloudinary is of
   assert.equal(meta.height, 450);
 });
 
+test('processImage reports unreadable uploads with a descriptive error', async () => {
+  const file = {
+    buffer: Buffer.from('not an image'),
+    originalname: 'photo.heic',
+    mimetype: 'image/heic',
+    size: 12,
+  };
+
+  await assert.rejects(() => processImage(file), (err) => {
+    assert.equal(err.statusCode, 415);
+    assert.match(err.message, /Could not process image "photo\.heic" \(image\/heic\)/);
+    return true;
+  });
+});
+
 test('processImage does not upscale small images', async () => {
   const input = await sharp({
     create: { width: 200, height: 100, channels: 3, background: '#00ff00' },

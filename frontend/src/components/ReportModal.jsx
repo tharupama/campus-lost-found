@@ -8,8 +8,15 @@ import { itemService } from '../services';
 import { useAuth } from '../contexts/AuthContext';
 import Swal from 'sweetalert2';
 
+function localToday() {
+  const now = new Date();
+  now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+  return now.toISOString().slice(0, 10);
+}
+
 export default function ReportModal({ open, onClose, type: initialType, prefill = {} }) {
   const { user } = useAuth();
+  const today = localToday();
   const [currentType, setCurrentType] = useState(initialType);
   const [form, setForm] = useState({
     title: '',
@@ -47,13 +54,21 @@ export default function ReportModal({ open, onClose, type: initialType, prefill 
     const file = e.target.files?.[0];
     if (!file) return;
     if (file.size > 8 * 1024 * 1024) {
-      toast.error('Image must be under 8MB');
+      toast.error(`Image is ${(file.size / (1024 * 1024)).toFixed(1)}MB. Maximum is 8MB.`);
       return;
     }
     setImage(file);
     const reader = new FileReader();
+    reader.onerror = () => {
+      console.error('[report] Could not read image file', { name: file.name, type: file.type, size: file.size });
+      toast.error(`Could not read "${file.name}". Please try another image.`);
+    };
     reader.onload = () => {
       const img = new Image();
+      img.onerror = () => {
+        console.error('[report] Could not preview image file', { name: file.name, type: file.type, size: file.size });
+        toast.error(`Could not preview "${file.name}" (${file.type || 'unknown type'}). Please use a JPEG or PNG image.`);
+      };
       img.onload = () => {
         const canvas = document.createElement('canvas');
         const scale = Math.min(1, 900 / img.width);
@@ -80,6 +95,10 @@ export default function ReportModal({ open, onClose, type: initialType, prefill 
       toast.error('Title, category and location are required');
       return;
     }
+    if (type === 'found' && form.date && form.date > today) {
+      toast.error('The found date cannot be in the future');
+      return;
+    }
     setSubmitting(true);
     try {
       const fd = new FormData();
@@ -103,7 +122,18 @@ export default function ReportModal({ open, onClose, type: initialType, prefill 
       reset();
       onClose(true);
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to submit report');
+      const status = err.response?.status;
+      const serverMessage = err.response?.data?.message;
+      console.error('[report] Submit failed', {
+        status,
+        message: serverMessage || err.message,
+        response: err.response?.data,
+      });
+      if (status === 413) {
+        toast.error('Image is too large for the server. Please choose a smaller photo.');
+      } else {
+        toast.error(serverMessage || err.message || 'Failed to submit report');
+      }
     } finally {
       setSubmitting(false);
     }
@@ -165,7 +195,7 @@ export default function ReportModal({ open, onClose, type: initialType, prefill 
 
         <div className="grid grid-cols-2 gap-3">
           <Field label={type === 'lost' ? 'Date lost' : 'Date found'}>
-            <input type="date" className="input-field" value={form.date} onChange={set('date')} required />
+            <input type="date" className="input-field" value={form.date} onChange={set('date')} max={type === 'found' ? today : undefined} required />
           </Field>
           <Field label="Status">
             <input className="input-field bg-slate-50 text-slate-500 dark:bg-slate-800 dark:text-slate-400" value="Active" disabled />

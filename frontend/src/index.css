@@ -57,6 +57,17 @@
   .input-field {
     @apply w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-200 placeholder:text-slate-400 dark:border-slate-700 dark:bg-slate-900 dark:focus:border-brand-500 dark:focus:ring-brand-500/30 dark:placeholder:text-slate-500;
   }
+  .dark input[type='date'] {
+    color-scheme: dark;
+  }
+  .dark input[type='date']::-webkit-calendar-picker-indicator {
+    filter: brightness(0) invert(1);
+    opacity: 0.9;
+    cursor: pointer;
+  }
+  .dark input[type='date']::-webkit-calendar-picker-indicator:hover {
+    opacity: 1;
+  }
   .btn-primary {
     @apply inline-flex items-center justify-center gap-2 rounded-xl bg-brand-600 px-5 py-3 text-sm font-semibold text-white shadow-glow transition hover:bg-brand-700 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60;
   }

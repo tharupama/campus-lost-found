@@ -4,10 +4,23 @@ const cloudinary = require('../config/cloudinary');
 async function processImage(file) {
   if (!file || !file.buffer) return null;
 
-  const buffer = await sharp(file.buffer)
-    .resize({ width: 900, withoutEnlargement: true })
-    .jpeg({ quality: 80 })
-    .toBuffer();
+  let buffer;
+  try {
+    buffer = await sharp(file.buffer)
+      .resize({ width: 900, withoutEnlargement: true })
+      .jpeg({ quality: 80 })
+      .toBuffer();
+  } catch (err) {
+    const name = file.originalname || 'unknown file';
+    const type = file.mimetype || 'unknown type';
+    const size = file.size || file.buffer.length;
+    console.error(
+      `[upload] Could not process "${name}" (${type}, ${size} bytes): ${err.stack || err.message}`
+    );
+    err.statusCode = 415;
+    err.message = `Could not process image "${name}" (${type}). ${err.message}`;
+    throw err;
+  }
 
   const cloudReady =
     process.env.CLOUDINARY_CLOUD_NAME &&
